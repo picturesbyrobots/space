@@ -108,18 +108,16 @@ export const createActor = (object, parameters) => {
     mesh.material.uniforms.slop.value = 0.05;
     mesh.material.uniforms.edgeCorrection.value = 0.2;
 
-    const posSound = new THREE.PositionalAudio(options.listener);
-    posSound.setRefDistance(10);
-    posSound.setRolloffFactor(1.5);
-    posSound.setDistanceModel('exponential');
-    posSound.setDirectionalCone(120, 230, 0.2);
-    posSound.rotation.y = Math.PI;
-    mesh.add(posSound);
+
+    let sound =  new THREE.Audio(options.listener)
+
+    mesh.add(sound);
+
 
     const setStream = (stream) => {
         actor_element.srcObject = stream;
         options.gestureWrangler.playVideo(actor_element);
-        posSound.setMediaStreamSource(stream);
+        sound.setMediaStreamSource(stream);
 
 
     }
