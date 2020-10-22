@@ -7,6 +7,8 @@
 <button type=button onclick="adminAction('reload', '/')">Reload everything</button>
 <!--<button type=button onclick="adminAction('reconnect', 'webrtc')">Reconnect WebRTC</button>-->
 <button type=button onclick="adminAction('reconnect', 'websocket')">Reconnect WebSocket</button>
+<button type=button onclick="hmltAction('setScene', 'beach')">Set Beach</button>
+<button type=button onclick="hmltAction('setScene', 'interior')">Set Interior</button>
 <ul id=knobsEl></ul>
 <template id=knobTemplate>
   <li>
@@ -18,7 +20,6 @@
 </template>
 <ul id=guests></ul>
 <script type=module>
-   import {init} from '/hmlt/setBuilder.js'
 
 class Knobs {
   constructor(config) {
@@ -217,7 +218,20 @@ window.adminAction = (type, body) => {
   conn && conn.send('broadcast', { type, body });
 };
 
+window.hmltAction = (type, body) => {
+  conn && conn.send('setKnob', {name : "hmlt_run", value : {
+    cmd : "setScene",
+    data : body
+    }
+  })
+
+}
+
+
+
+
 connectWs();
+
 //init(conn)
 
 navigator.requestMIDIAccess({

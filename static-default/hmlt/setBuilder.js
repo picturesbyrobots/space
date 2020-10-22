@@ -54,8 +54,19 @@ export var reload = (scene)  => {
                     Promise.all(promises).then(() => {
                             setScene("interior")
                             scene.add(hmlt_root)
-                })
-            })
+                            Service.get('knobs', knobs => { 
+                                knobs.observe('hmlt_run', msg => {
+
+                                    if(msg === undefined) return
+                                    if(msg.cmd === "setScene") 
+                                    {
+                                        setScene(msg.data)
+                                    }
+
+                                })
+                            })
+                    })
+        })
 
                 // loadSet(hmlt_root, data, (hmlt_root,data) => {
 
