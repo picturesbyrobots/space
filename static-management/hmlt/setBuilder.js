@@ -486,6 +486,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
         // export the overall position of the scene
 
         export_data.scene_position = scene_position
+        export_data.sceneName = target_object.name
 
 
         return export_data
