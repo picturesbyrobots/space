@@ -77,132 +77,56 @@ export var reload = (scene)  => {
 
 
 
-// const useKnobs = () => {
-//        Service.get('knobs', knobs => {
-//                     knobs.observe('hmlt_build', msg => {
+const useKnobs = () => {
+       Service.get('knobs', knobs => {
+                    knobs.observe('hmlt_build', msg => {
 
-//                         if(msg === undefined) return; 
+                        if(msg === undefined) return; 
 
-//                         switch(msg.cmd) {
-//                         case "transform_update" :
-//                         {
+                        switch(msg.cmd) {
+                        case "transform_update" :
+                        {
 
-//                             let active_obj = hmlt_root.getObjectByName(msg.obj)
-//                             if(active_obj === undefined) 
-//                             {
-//                                 return
-//                             }
+                            let active_obj = hmlt_root.getObjectByName(msg.obj)
+                            if(active_obj === undefined) 
+                            {
+                                return
+                            }
 
-//                             let dispatch = {
-//                                 "translate" : () => {
-//                                                 let {x,y,z} = msg.data
-//                                                 active_obj.position.copy(new THREE.Vector3(x,y,z))
-//                                                 },
-//                                "scale" : () => {
-//                                                 let {x,y,z} = msg.data
-//                                                 active_obj.scale.copy(new THREE.Vector3(x,y,z))
-//                                                 },
-//                                "rotate" : () => {
-//                                                 let {_x,_y,_z,_w} = msg.data
-//                                                 active_obj.quaternion.copy(new THREE.Quaternion(_x,_y,_z,_w))
-//                                                 }
+                            let dispatch = {
+                                "translate" : () => {
+                                                let {x,y,z} = msg.data
+                                                active_obj.position.copy(new THREE.Vector3(x,y,z))
+                                                },
+                               "scale" : () => {
+                                                let {x,y,z} = msg.data
+                                                active_obj.scale.copy(new THREE.Vector3(x,y,z))
+                                                },
+                               "rotate" : () => {
+                                                let {_x,_y,_z,_w} = msg.data
+                                                active_obj.quaternion.copy(new THREE.Quaternion(_x,_y,_z,_w))
+                                                }
                                
  
-//                             }
+                            }
 
                         
 
-//                             if(!Object.keys(dispatch).includes(msg.mode))
-//                                 return
-//                             dispatch[msg.mode]()
-//                             break
-
-
-//                         }
-//                         case "light-update" : 
-//                         {
-//                             let active_obj = hmlt_root.getObjectByName(msg.obj)
-//                             active_obj[msg.prop] = msg.data
-//                             // we need to do a little more here in the case of
-//                             // spotlights
-//                             if(msg.prop === "name" && active_obj.type === "SpotLight") 
-//                             {
-//                                 active_obj.target.name = `${msg.data} - target`
-//                                 active_obj.target.userData.targetOf = msg.data
-
-//                             }
-//                             break
-
-//                         }
-
-//                         case "name-update" :
-//                                 let active_obj = hmlt_root.getObjectByName(msg.obj)
-//                                 active_obj.name = msg.data
-//                                 break
-                                
-//                         case "scene-update" : 
-//                         {
-//                             let {x,y,z} = msg.data
-//                             hmlt_root.position.copy(new THREE.Vector3(x,y,z))
-//                             break
-//                         }
-
-//                         case "duplicate-obj" :
-//                             {
-//                                 duplicateSelectedObject(hmlt_root, msg.obj)
-//                                 break
-//                             }
-//                         case "add-point" :
-//                             {
-//                                 addPointLight(hmlt_root);
-//                                 break
-//                             }
-//                         case "add-spot" :
-//                             {
-//                                 addSpotLight(hmlt_root)
-//                             }
-                        
-//                         case "add-actor" :
-//                             {
-//                                 console.log("creating actor") 
-                                
-//                                 let [actor, setStream, getStream] = createActor(hmlt_root, {name : msg.data.name, 
-//                                                                                            listener : audio_listener, 
-//                                                                                             gestureWrangler : gesture_wrangler})
-                                    
-                                                    
-//                                 setStreamFunctions.set(actor.name, {setStream : setStream, id: undefined})
-//                                 break
-
-                                
-                                
-//                             }
-
-
-//                         case "delete-obj" :
-//                             {
-//                             let active_obj = hmlt_root.getObjectByName(msg.obj)
-//                             if(!active_obj)
-//                                 return
-//                             hmlt_root.remove(active_obj)
-//                             }
-
-//                         }
-                        
-
-
-
-//                     })
-
-//             })
-//         }
-
+                            if(!Object.keys(dispatch).includes(msg.mode))
+                                return
+                            dispatch[msg.mode]()
+                            break
+                        }
+                    }
+                })
+       })
+}       
+            
 
 
 
     
 export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al) => {
-    panel = new GUI({width : 310})
     lighting_panel = new GUI({width: 300})
 
 
@@ -220,6 +144,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al) => {
     id_lookup = new Map()
 
     reload(scene)
+    useKnobs()
 
     }
         

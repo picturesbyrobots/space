@@ -1,7 +1,5 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {loadMesh} from '/hmlt/three-utils/modelLoader.js'
-import {createActor} from '/hmlt/three-utils/actorPlace.js'
-
 
 
 
@@ -9,8 +7,6 @@ import {createActor} from '/hmlt/three-utils/actorPlace.js'
 let module_name = "SPACE_LOADER"
 
 const say = (text) => {
-
-    
 
     console.log(`${module_name} : ${text}`)
 
@@ -28,16 +24,17 @@ const setTransform = (object, transform_data) => {
 
 
 }
-export const loadSet = (object, config, callback) => {
+export const loadSet = (object, config, actor_factory) => {
 
 
-    say('LOADING MODELS...')
-    console.log(config.models)
-    const promises = config.models.map(model => {
+    return new Promise((resolve, reject) => {
+
+        let scene = new THREE.Group()
+        say('LOADING MODELS...')
+        const promises = config.models.map(model => {
 
         return loadMesh(model).then(mesh => {
-            console.log(mesh)
-            object.add(mesh)
+            scene.add(mesh)
         })
     })
 
@@ -55,11 +52,10 @@ export const loadSet = (object, config, callback) => {
             }
             new_target.name = target_data.name
             setTransform(new_target, target_data.transform)
-            object.add(new_target);
+            scene.add(new_target);
         })
 
         say('TARGETS CREATED. ADDING LIGHTS')
-        console.log(config.lights)
         config.lights.forEach(light_data => {
 
             // we need to set these light properties manually
@@ -76,7 +72,7 @@ export const loadSet = (object, config, callback) => {
                     new_spot.power = light_props.power;
                     new_spot.angle = light_props.angle;
                     new_spot.penumbra = light_props.penumbra;
-                    new_spot.target = object.getChildByName(light_props.targetName)
+                    new_spot.target = scene.getChildByName(light_props.targetName)
                     return new_spot
 
                     }
@@ -88,9 +84,8 @@ export const loadSet = (object, config, callback) => {
             
             setTransform(new_light, light_data.transform)
 
-            object.add(new_light)
+            scene.add(new_light)
 
-        
             
 
 
@@ -98,26 +93,21 @@ export const loadSet = (object, config, callback) => {
 
 
         })
-        say('LIGHTS CREATED. PLACING ACTORS')
-        if(config.actors) {
 
-            config.actors.forEach(actor_data => {
+        say('LIGHTS ADDED. CREATING ACTORS')
+        actor_factory(scene, config.actors)
 
-                let {x,y,z} = actor_data.transform.position;
-                let [sx,sy,sz] = actor_data.transform.scale;
-                let [qx,qy,qz,qw] = actor_data.transform.rotation
-                createActor(object, 
-                    {
-                        name : actor_data.name,
-                        position : new THREE.Vector3(x,y,z)
-                })
-                
+        say('ACTORS CREATED. SETTING POSITION')
+        let {x,y,z} = config.scene_position;
+        scene.position.copy(new THREE.Vector3(x,y,z));
 
-            })
-        }
-        if (callback)
-            callback(object, config)
+        scene.name = config.sceneName
+
+        object.add(scene)
+        resolve(scene, config)
+    })
 
     })
+    
 
 }

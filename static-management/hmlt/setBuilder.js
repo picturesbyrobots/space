@@ -5,18 +5,24 @@ import {GUI} from '/deps/three/examples/jsm/libs/dat.gui.module.js'
 
 import {loadSet} from '/hmlt/spaceLoader.js'
 import {createActor} from '/hmlt/three-utils/actorPlace.js'
-
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, actor_panel
 
 var scene_position
 let active_model_name = ""
 let conn;
+let socket;
 let config ;
+let config_data;
+let active_scene
+let root_scene;
 
 
-export var init = ( kconn, config_uri) => {
+export var init = ( kconn, config_uri, k_socket) => {
 
     conn = kconn
+    socket = k_socket
+    
+
 
     scene_position = new THREE.Vector3(0,0,0)
     camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 400);
@@ -26,6 +32,8 @@ export var init = ( kconn, config_uri) => {
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     hmlt_root = new THREE.Scene();
+    root_scene = new THREE.Scene();
+
     clock = new THREE.Clock();
     renderer = new THREE.WebGLRenderer({antialias : true})
     renderer.setSize( window.innerWidth, window.innerHeight )
@@ -51,15 +59,82 @@ export var init = ( kconn, config_uri) => {
 
         
    })
+   animate()
 }
+export const useActiveScene = () => {
+        let update_scenes = (active_scene_name) => {
+            console.log("update scene")
+            hmlt_root.children.map(child => {
+                if(child.name === active_scene_name) {
+                    child.visible = true
+                }else {
+                    child.visible = false
+                }
+            })
+        }
+
+        const setActiveScene = (new_scene_name) => {
+            update_scenes(new_scene_name)
+            active_scene = new_scene_name
+        }
+        const getActiveSceneName  = () => {
+            return active_scene
+        }
+        
+
+        return [getActiveSceneName , setActiveScene]
+    }
+
+const guis = () => {
+
+    buildGui(active_scene)
+    buildLightGui(hmlt_root.getObjectByName(active_scene))
+    buildActorGui(hmlt_root.getObjectByName(active_scene))
+
+}
+export var reload = (scene)  => {
+    if(config === "")
+        return
+
+    let [getScene, setScene] = useActiveScene()
+    
+    fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
+        .then(
+        response => response.json())
+        .then(data =>  {
+                  config_data = data
+                  console.log(data)
+                 let promises = data.map(set => {
+                                       return loadSet(hmlt_root, set, (obj, actor_data)=> {
+                                             actor_data.forEach(actor => {
+
+                                                createActor(obj, actor)
+
+                                             })}
+                                            )
+                        })
+                    Promise.all(promises).then(() => {
+                            setScene("beach")
+                            scene.add(hmlt_root)
+                            guis()
+
+                            
+                    })
+        })
+
+                // loadSet(hmlt_root, data, (hmlt_root,data) => {
+
+                // // load the actors and set stream functions
+}
+
+
     
 export var initBuilder = (scene,config_uri, k_camera, renderer) => {
+    config = config_uri
     panel = new GUI({width : 310})
     lighting_panel = new GUI({width: 300})
     actor_panel = new GUI({width: 300})
 
-
-    hmlt_root = new THREE.Scene();
 
     clock = new THREE.Clock();
 
@@ -101,30 +176,9 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
 
     hmlt_root.add(transform_controls)
+    reload(root_scene)
 
     
-
-    
-    
-
-    fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config_uri}`)
-        .then(
-        response => response.json())
-        .then(data =>  {
-
-                config = data 
-                loadSet(hmlt_root, data, (hmlt_root,data) => {
-                buildGui(hmlt_root)
-                buildActorGui(hmlt_root)
-                scene.add(hmlt_root)
-                animate()
-
-            })
-
-
-                 }
-            )
-
 
    
 
@@ -164,6 +218,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
         }
 
    })
+}
 
    var scene_file = null;
    const createFile = (json_obj) => 
@@ -315,15 +370,21 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
 
    }
-   const getSceneData = (scene) => {
+   const getSceneData = (target_object) => {
 
         let export_data = {}
         export_data.models = []
 
         // first we get the updated transforms for the loaded models
-        config.models.forEach(model_data => {
+        let scene_data = config_data.filter(scene => {return scene.sceneName === target_object.name})[0]
 
-            let o = scene.getObjectByName(model_data.name)
+        if(scene_data === undefined ) {
+            return 
+        }
+        
+        scene_data.models.forEach(model_data => {
+
+            let o = target_object.getObjectByName(model_data.name)
 
             // bail early if the object has been deleted
             if(o === undefined) return
@@ -342,7 +403,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
         // now we need the added lighting 
         let validLights = ["DirectionalLight", "PointLight", "SpotLight"] 
-        let light_data = hmlt_root.children.filter(
+        let light_data = target_object.children.filter(
                                         child =>  {return validLights.indexOf(child.type) !== -1 && !child.userData.isClone})
                                           .map(light_obj => {
 
@@ -373,7 +434,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
 
         // we need all the duplicates. this helps cut down on loading time
-        let duplicate_data =hmlt_root.children.filter( child => {return child.userData.isClone})
+        let duplicate_data = target_object.children.filter( child => {return child.userData.isClone})
                                             .map(dup_obj => {
 
                                                 let dup_data = {}
@@ -389,7 +450,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
 
         // target data. 
-        let targets_data =hmlt_root.children.filter( child => {return child.userData.isTarget})
+        let targets_data = target_object.children.filter( child => {return child.userData.isTarget})
                                             .map(target_obj => {
 
                                                 let target_data = {}
@@ -412,7 +473,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
 
         // actor data
-        let actors_data = hmlt_root.children.filter(child =>  {return child.userData.isActor})
+        let actors_data = target_object.children.filter(child =>  {return child.userData.isActor})
                                                   .map(actor_obj => {
                                                       let actor_data = {}
                                                       actor_data.name = actor_obj.name;
@@ -571,6 +632,11 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
    const buildActorGui = (hmlt_root) => {
 
         let selected_actor_name = "hmlt"
+        if(Object.keys(actor_panel.__folders).includes('Create Actor')) {
++
++             actor_panel.removeFolder(actor_panel.__folders['Create Actor'])
+        }
+
         let actor_create_folder = actor_panel.addFolder('Create Actor')
         let actorController = {
             name :selected_actor_name ,
@@ -601,7 +667,8 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
    }
 
 
-    const buildGui = (hmlt_root) => {
+    const buildGui = (scene_name) => {
+        let target_scene = hmlt_root.getObjectByName(scene_name)
         let validObject = ["Mesh"]
         let panelSettings = {}
 
@@ -613,7 +680,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
         var model_folder = panel.addFolder('Models')
 
-        let model_names=hmlt_root.children.filter(
+        let model_names= target_scene.children.filter(
                                         child =>  {return child.type === "Mesh"})
 
                                         .map(child => { return child.name})
@@ -622,7 +689,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
                 panelSettings[name] = () => {
                     active_model_name = name
-                    let obj =hmlt_root.getObjectByName(active_model_name) 
+                    let obj = target_scene.getObjectByName(active_model_name) 
                     if(obj)
                     {
 
@@ -651,7 +718,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
          var  light_folder = panel.addFolder('Lights')
          
-          let light_names =hmlt_root.children.filter(
+          let light_names = target_scene.children.filter(
                                         child =>  {return validLights.indexOf(child.type) !== -1})
 
                                         .map(child => { return child.name})
@@ -662,7 +729,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
                 panelSettings[name] = () => {
                     active_model_name = name
-                    let obj =hmlt_root.getObjectByName(active_model_name) 
+                    let obj = target_scene.getObjectByName(active_model_name) 
                     if(obj)
                     {
 
@@ -692,7 +759,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
             }
 
         let targets_folder = panel.addFolder('Light Targets') 
-        let target_names =hmlt_root.children.filter(
+        let target_names = target_scene.children.filter(
                             child => {return child.userData.isTarget}
                             )
                             .map(targ_obj => {return targ_obj.name})
@@ -716,38 +783,38 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                                 lightTargetControls.push(targets_folder.add(panelSettings, name))
                             })
 
-        
 
+       let sceneControls = []
+            if(Object.keys(panel.__folders).includes('Scene Controls')) 
+            {
+                panel.removeFolder(panel.__folders['Scene Controls']) 
 
-        
-
-
-       if(Object.keys(panel.__folders).includes('Scene')) {
-            panel.removeFolder(panel.__folders['Scene'])
-        } 
-        let scene_controller = {
-            x : 0,
-            y : 0,
-            z : 0
-        }
-
-        const sendSceneData = (dim, val) => {
-            conn && conn.send('setKnob', {name : "hmlt_build", value : {
-            obj: active_model_name, 
-            cmd : "scene-update",
-            data : scene_position}}
-          )
-        }
-
-
-        let scene_folder = panel.addFolder('Scene')
-        Object.keys(scene_controller).forEach( dim => {
-            scene_folder.add(scene_controller, dim, -1000, 1000).onChange(val => {
-                scene_position[dim] = val
-                sendSceneData()
-            })
             }
-        )
+
+
+        let scene_folder = panel.addFolder('Scene Controls')
+        let scene_names  = hmlt_root.children.map((child => {return child.name}))
+        scene_names.forEach(name => {
+
+                panelSettings[name] = () => {
+                    let obj =hmlt_root.getObjectByName(name) 
+                    if(obj)
+                    {
+                            let [getScene, setScene] = useActiveScene()
+                            conn && conn.send('setKnob', {name : "hmlt_run", value : {
+                                cmd : "setScene",
+                                data : name
+                                }
+                            })
+                            setScene(name)
+                            guis()
+                    }
+                        
+                }
+            sceneControls.push(scene_folder.add(panelSettings, name))
+
+            })
+        
         
 
 
@@ -761,9 +828,22 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
         // build download link
         panelSettings["export"] = () => {
 
+
+            let export_data = hmlt_root.children
+               .filter(child => {return child.type === "Group"})
+               .map(child =>{
+                        return getSceneData(child)
+                    }
+
+                )
+
+                console.log(export_data)
+
             var link = document.createElement('a')
+
             link.setAttribute('download', 'config.js');
-            link.href = createFile(getSceneData(hmlt_root))
+
+            link.href = createFile(export_data)
             document.body.appendChild(link)
             window.requestAnimationFrame(() => {
 
@@ -780,12 +860,11 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
     }
 
-}
 
 
 var render = () => {
 
-        renderer.render(hmlt_root,camera)
+        renderer.render(root_scene,camera)
 }
 
 
