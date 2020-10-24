@@ -52,7 +52,7 @@ export var reload = (scene)  => {
                                        return loadSet(hmlt_root, set, createActors)
                         })
                     Promise.all(promises).then(() => {
-                            setScene("interior")
+                            setScene("beach")
                             scene.add(hmlt_root)
                             Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
