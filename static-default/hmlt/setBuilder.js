@@ -185,6 +185,13 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al) => {
                     setStreamFunctions.set(actor_name, {...setStreamFunctions.get(actor_name), id : id })
                     id_lookup.set(id, actor_name)
                 }
+                const clearActorRole = (id) => {
+                    if(!id_lookup.has(id)) {
+                        return
+                    }
+                    setStreamFunctions.get(id_lookup.get(id)).setStream(null)
+                  id_lookup.delete(id);
+                }
 
                 const updateMediaStream = (id,t) => {
 
@@ -195,7 +202,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al) => {
                 }
 
 
-        return [hasId, setActorId, updateMediaStream]
+        return [hasId, setActorId, clearActorRole, updateMediaStream]
     }
    
 
