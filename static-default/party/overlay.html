@@ -203,11 +203,15 @@ Service.get('userMedia', userMedia => {
   });
 
   let defaultVideoDevice;
+  let defaultAudioDevice;
   userMedia.observe('stream', stream => {
     const videoTrack = stream.getVideoTracks()[0];
     if (videoTrack) {
-      console.log('new video track', videoTrack.getSettings());
       defaultVideoDevice = videoTrack.getSettings().deviceId;
+    }
+    const audioTrack = stream.getAudioTracks()[0];
+    if (audioTrack) {
+      defaultAudioDevice = audioTrack.getSettings().deviceId;
     }
 
     if (preview.srcObject == stream)
@@ -230,6 +234,11 @@ Service.get('userMedia', userMedia => {
         height: 720,
         aspectRatio: 1920/1080,
         deviceId: { exact: defaultVideoDevice },
+      },
+      audio: {
+        noiseSuppression: false,
+        echoCancellation: false,
+        deviceId: { exact: defaultAudioDevice },
       }
     });
     console.log('defaultVideoDevice', defaultVideoDevice);
@@ -243,6 +252,7 @@ Service.get('userMedia', userMedia => {
     });
     userMedia.applyConstraints({
       video: userMedia.defaultConstraints.video,
+      audio: userMedia.defaultConstraints.audio,
     });
     startActing.style.display = '';
     stopActing.style.display = 'none';
