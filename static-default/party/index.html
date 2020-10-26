@@ -470,11 +470,13 @@ const buildGlRoom = (canvas, config) => {
         obj.add(camera);
         camera.position.set(0, 0, 0);
         camera.rotation.set(0, Math.PI, 0);
+        camera.fov = 100;
       }
     } else {
       scene.add(camera);
       camera.position.set(position[0], 6 + position[2], -position[1]);
       camera.rotation.set(-look[1], -look[0], 0);
+      camera.fov = 60;
     }
 
 
