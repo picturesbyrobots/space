@@ -83,6 +83,10 @@ export const loadMesh = (model, parameters)  => {
                  let geometry = mesh.geometry;
                 geometry.attributes.uv2 = geometry.attributes.uv;
                 geometry.center()
+                console.log(result[1])
+                if(!result[1]) {
+                    console.log(`WARNING: No material for : ${geometry.name}`)
+                }
                 let final = new THREE.Mesh(geometry, result[1])
                 let [ rx,ry,rz,rw] = model.transform.rotation
                 let [sx, sy, sz] = model.transform.scale

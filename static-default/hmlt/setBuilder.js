@@ -4,6 +4,7 @@ import Service from '/space/js/Service.js'
 
 import {loadSet} from '/hmlt/spaceLoader.js'
 import { createActor } from './three-utils/actorCast.js'
+import { LOG_LEVEL, useSets } from './setLoader.js'
 
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, gesture_wrangler, audio_listener
@@ -43,14 +44,13 @@ export var reload = (scene)  => {
         return
 
     let [getScene, setScene] = useActiveScene()
+    let [loadSet] = useSets(LOG_LEVEL.VERBOSE)
     
     fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
         .then(
         response => response.json())
         .then(data =>  {
-                 let promises = data.map(set => {
-                                       return loadSet(hmlt_root, set, createActors)
-                        })
+                   let promises = data.map(set_data => {return loadSet(hmlt_root, set_data, createActors)})
                     Promise.all(promises).then(() => {
                             setScene("beach")
                             scene.add(hmlt_root)
@@ -68,9 +68,6 @@ export var reload = (scene)  => {
                     })
         })
 
-                // loadSet(hmlt_root, data, (hmlt_root,data) => {
-
-                // // load the actors and set stream functions
 }
 
 

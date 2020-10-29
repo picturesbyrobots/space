@@ -4,11 +4,25 @@ import {loadMesh} from '/hmlt/three-utils/modelLoader.js'
 
 
 
-let module_name = "SPACE_LOADER"
+let module_name = "SET_LOADER"
 
-const say = (text) => {
+export const LOG_LEVEL = {
+    VERBOSE : 0,
+    SILENT : 3,
+    WARN : 2,
+    ERROR: 4
+}
 
-    console.log(`${module_name} : ${text}`)
+let current_log_level = LOG_LEVEL.VERBOSE
+
+const say = (text, lvl) => {
+
+    if(lvl >= current_log_level) {
+
+        console.log(`${module_name} : ${text}`)
+    }
+
+    
 
 }
 
@@ -24,7 +38,7 @@ const setTransform = (object, transform_data) => {
 
 
 }
-export const loadSet = (object, config, actor_factory) => {
+const loadSet = (object, config, actor_factory) => {
 
 
     return new Promise((resolve, reject) => {
@@ -86,12 +100,6 @@ export const loadSet = (object, config, actor_factory) => {
 
             scene.add(new_light)
 
-            
-
-
-            
-
-
         })
 
         say('LIGHTS ADDED. CREATING ACTORS')
@@ -108,6 +116,10 @@ export const loadSet = (object, config, actor_factory) => {
     })
 
     })
-    
+}
 
+export const useSets = (log_level) =>  {
+
+    current_log_level = log_level;
+    return[loadSet]
 }
