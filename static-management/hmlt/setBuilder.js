@@ -97,7 +97,7 @@ export var reload = (scene)  => {
         return
 
     let [getScene, setScene] = useActiveScene()
-    
+
     fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
         .then(
         response => response.json())
@@ -152,9 +152,9 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
         let mode = transform_controls.getMode()
         let which_data = {
-            "translate" : hmlt_root.getObjectByName(active_model_name).position,
-            "scale" : hmlt_root.getObjectByName(active_model_name).scale,
-            "rotate" : hmlt_root.getObjectByName(active_model_name).quaternion,
+            "translate" : hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name).position,
+            "scale" : hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name).scale,
+            "rotate" : hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name).quaternion,
         }
         conn && conn.send('setKnob', {name : "hmlt_build", value : {
             obj: active_model_name, 
@@ -198,11 +198,11 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                 break
 
             case 'p' : 
-                addPointLight(hmlt_root)
+                addPointLight()
                 break
 
             case 'o' : 
-                addSpotLight(hmlt_root)
+                addSpotLight()
                 break
 
 
@@ -304,28 +304,29 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
    }
 
-   const addPointLight = (hmlt_root) => {
+   const addPointLight = () => {
         var plight = new THREE.PointLight( 0xff0000, 1, 100, 2 );
-        if(hmlt_root.getObjectByName("pointlight")) 
+
+        if(hmlt_root.getObjectByName(active_scene).getObjectByName("pointlight")) 
         {
 
-            let suf = hmlt_root.children.filter(child => child.name.includes("pointlight")).length
+            let suf = hmlt_root.getObjectByName(active_scene).children.filter(child => child.name.includes("pointlight")).length
             plight.name = `pointlight.00${suf}`
 
         }else {
             plight.name = "pointlight"
         }
-        hmlt_root.add(plight)
-        buildGui(hmlt_root)
+        hmlt_root.getObjectByName(active_scene).add(plight)
+        guis()
    }
 
-   const addSpotLight = (hmlt_root) => {
+   const addSpotLight = () => {
 
     var slight = new THREE.SpotLight(0xff00ff, 1)
-    if(hmlt_root.getObjectByName("spotlight")) 
+    if(hmlt_root.getObjectByName(active_scene).getObjectByName("spotlight")) 
         {
 
-            let suf = hmlt_root.children.filter(child => child.name.includes("spotlight")).length
+            let suf = hmlt_root.getObjectByName(active_scene).children.filter(child => child.name.includes("spotlight")).length
             slight.name = `spotlight.00${suf}`
 
         }else {
@@ -343,10 +344,10 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
             
         slight.target = light_target
 
-        hmlt_root.add(slight)
-        hmlt_root.add(light_target)
+        hmlt_root.getObjectByName(active_scene).add(slight)
+        hmlt_root.getObjectByName(active_scene).add(light_target)
         
-        buildGui(hmlt_root)
+        guis()
    }
 
    const exportTransform = (export_data , o) => {
@@ -507,12 +508,14 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
    
 
-   const buildLightGui = (root) => {
+   const buildLightGui = () => {
 
         let validLights = ["DirectionalLight", "PointLight", "SpotLight"] 
         // bail if we have no objects
         if(active_model_name === "") return;
-        let selected_obj = hmlt_root.getObjectByName(active_model_name);
+
+        
+        let selected_obj = hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name);
 
         if(!validLights.includes(selected_obj.type)) return
 
