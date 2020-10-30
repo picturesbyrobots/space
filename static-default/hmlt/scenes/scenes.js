@@ -1,6 +1,7 @@
 import * as THREE from '/deps/three/build/three.module.js'
-
-let module_name = "SCENE MANAGER"
+import * as beach_functions from './beach.js'
+import * as street_functions from './street.js'
+let module_name = "USES SCRIPTS"
 let script_map;
 
 
@@ -13,7 +14,7 @@ export const LOG_LEVEL = {
 
 let current_log_level = LOG_LEVEL.VERBOSE
 
-const say = (text, lvl) => {
+export const say = (text, lvl) => {
 
     if(lvl >= current_log_level) {
 
@@ -24,34 +25,26 @@ const say = (text, lvl) => {
 
 }
 
-const beach_init = (hmlt_root) => {
 
-    say('BEACH INIT')
-
-}
-
-
-const beach_animate = (hmlt_root) => {
-    say('BEACH ANIMATE')
-
-}
 
 
 export const useSceneScripts = (lvl) => {
     current_log_level = lvl
     script_map = new Map ()
-    script_map.set("beach",[beach_init, beach_animate])
-    let get_funcs = (func_name) => {
+    script_map.set("beach",{init : beach_functions.init, animate :beach_functions.animate})
+    script_map.set("street",{init : street_functions.init, animate : street_functions.animate})
+    let get_funcs = (scene_name) => {
 
-        if(!script_map.has(func_name)) 
+        if(!script_map.has(scene_name)) 
         {
-            say(`Can't a find functions for : ${func_name}`, LOG_LEVEL.WARN)
-            return
+            say(`Can't a find functions for : ${scene_name}`, LOG_LEVEL.WARN)
+            return null
         }
-        return script_map.get(name)
+        return script_map.get(scene_name)
 
     }
 
-    return [get_funcs]
+
+    return get_funcs
 
 }

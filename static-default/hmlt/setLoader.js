@@ -1,12 +1,12 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {loadMesh} from '/hmlt/three-utils/modelLoader.js'
-
+import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 
 
 let module_name = "SET_LOADER"
 
-export const LOG_LEVEL = {
+export const LOADER_LOG_LEVEL = {
     VERBOSE : 0,
     SILENT : 3,
     WARN : 2,
@@ -38,10 +38,12 @@ const setTransform = (object, transform_data) => {
 
 
 }
-const loadSet = (object, config, actor_factory) => {
+export const loadSet = (object, config, actor_factory) => {
 
+    let getFuncs = useSceneScripts(LOG_LEVEL.VERBOSE)
 
     return new Promise((resolve, reject) => {
+
 
         let scene = new THREE.Group()
         say('LOADING MODELS...')
@@ -116,6 +118,12 @@ const loadSet = (object, config, actor_factory) => {
         scene.position.copy(new THREE.Vector3(x,y,z));
 
         scene.name = config.sceneName
+
+        let scene_scripts = getFuncs(scene.name)
+        if(scene_scripts) {
+            scene_scripts.init(scene)
+        }
+        
 
         object.add(scene)
         resolve(scene, config)

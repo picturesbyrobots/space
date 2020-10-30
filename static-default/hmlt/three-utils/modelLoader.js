@@ -75,7 +75,6 @@ export const loadMesh = (model, parameters)  => {
 
         //need to do some geometry things here.
         let gltf = result[0];
-        console.log(gltf)
         if(Object.keys(gltf).indexOf("scene") !== -1) 
         {
             let mesh = gltf.scene.getObjectByName(model.geometry.name)
@@ -83,7 +82,6 @@ export const loadMesh = (model, parameters)  => {
                  let geometry = mesh.geometry;
                 geometry.attributes.uv2 = geometry.attributes.uv;
                 geometry.center()
-                console.log(result[1])
                 if(!result[1]) {
                     console.log(`WARNING: No material for : ${geometry.name}`)
                 }
