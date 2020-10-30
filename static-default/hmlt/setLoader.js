@@ -1,14 +1,28 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {loadMesh} from '/hmlt/three-utils/modelLoader.js'
+import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 
 
+let module_name = "SET_LOADER"
 
-let module_name = "SPACE_LOADER"
+export const LOADER_LOG_LEVEL = {
+    VERBOSE : 0,
+    SILENT : 3,
+    WARN : 2,
+    ERROR: 4
+}
 
-const say = (text) => {
+let current_log_level = LOG_LEVEL.VERBOSE
 
-    console.log(`${module_name} : ${text}`)
+const say = (text, lvl) => {
+
+    if(lvl >= current_log_level) {
+
+        console.log(`${module_name} : ${text}`)
+    }
+
+    
 
 }
 
@@ -26,8 +40,10 @@ const setTransform = (object, transform_data) => {
 }
 export const loadSet = (object, config, actor_factory) => {
 
+    let getFuncs = useSceneScripts(LOG_LEVEL.VERBOSE)
 
     return new Promise((resolve, reject) => {
+
 
         let scene = new THREE.Group()
         say('LOADING MODELS...')
@@ -92,12 +108,6 @@ export const loadSet = (object, config, actor_factory) => {
 
             scene.add(new_light)
 
-            
-
-
-            
-
-
         })
 
         say('LIGHTS ADDED. CREATING ACTORS')
@@ -109,11 +119,24 @@ export const loadSet = (object, config, actor_factory) => {
 
         scene.name = config.sceneName
 
+        let scene_scripts = getFuncs(scene.name)
+
+        if(scene_scripts) {
+
+            scene_scripts.init(scene)
+            
+        }
+        
+
         object.add(scene)
         resolve(scene, config)
     })
 
     })
-    
+}
 
+export const useSets = (log_level) =>  {
+
+    current_log_level = log_level;
+    return[loadSet]
 }

@@ -2,9 +2,11 @@ import * as THREE from '/deps/three/build/three.module.js'
 import {GUI} from '/deps/three/examples/jsm/libs/dat.gui.module.js'
 import Service from '/space/js/Service.js'
 
-import {loadSet} from '/hmlt/spaceLoader.js'
+import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
 import { createActor } from './three-utils/actorCast.js'
+
 import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
+import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, gesture_wrangler, audio_listener
 
@@ -18,6 +20,24 @@ let config = ""
 let active_scene = ""; 
 let pc;
 
+/*
+                            let video_data = 
+                            {
+                                id : "test_video",
+                                uri : "https://hamlet-gl-assets.s3.amazonaws.com/misc/video/clouds.mp4"
+                            }
+
+                            let parameters = {
+                                wallColor : 0xf3f3f3
+                            }
+                                makeVideoArtwork(pc,audio_listener,gesture_wrangler,video_data,parameters)
+                                                .then((results) => {
+                                                let [artwork, setVideoSrc] = results
+                                                
+                                                hmlt_root.add(artwork)
+                                                })
+
+*/
 const createActors = (object, actors) => {
             actors.forEach(actor_data => {
                         let {x,y,z} = actor_data.transform.position;
@@ -44,33 +64,17 @@ export var reload = (scene)  => {
         return
 
     let [getScene, setScene] = useActiveScene()
+    let [loadSet] = useSets(LOADER_LOG_LEVEL.VERBOSE)
     
     fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
         .then(
         response => response.json())
         .then(data =>  {
-                 let promises = data.map(set => {
-                                       return loadSet(hmlt_root, set, createActors)
-                        })
+                   let promises = data.map(set_data => {return loadSet(hmlt_root, set_data, createActors)})
                     Promise.all(promises).then(() => {
-                            setScene("beach")
+                            setScene("street")
                             scene.add(hmlt_root)
 
-                            let video_data = 
-                            {
-                                id : "test_video",
-                                uri : "https://hamlet-gl-assets.s3.amazonaws.com/misc/video/clouds.mp4"
-                            }
-
-                            let parameters = {
-                                wallColor : 0xf3f3f3
-                            }
-                                makeVideoArtwork(pc,audio_listener,gesture_wrangler,video_data,parameters)
-                                                .then((results) => {
-                                                let [artwork, setVideoSrc] = results
-                                                
-                                                hmlt_root.add(artwork)
-                                                })
                             Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
 
@@ -85,9 +89,6 @@ export var reload = (scene)  => {
                     })
         })
 
-                // loadSet(hmlt_root, data, (hmlt_root,data) => {
-
-                // // load the actors and set stream functions
 }
 
 
@@ -221,6 +222,22 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
 
 
         return [hasId, setActorId, clearActorRole, updateMediaStream]
+    }
+
+    export const useAnimation = () => {
+
+        let getFuncs = useSceneScripts(LOG_LEVEL.VERBOSE)
+
+        let animate = () => {
+            let animate_script = getFuncs(active_scene)
+            if(animate_script) 
+            {
+                animate_script.animate(hmlt_root.getObjectByName(active_scene))
+            }
+        }
+
+        return animate
+
     }
    
 
