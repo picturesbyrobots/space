@@ -75,6 +75,14 @@ export const loadSet = (object, config, actor_factory) => {
                     new_spot.target = scene.getChildByName(light_props.targetName)
                     return new_spot
 
+                    },
+
+                "DirectionalLight" : (light_props)  => {
+                    console.log("new directional")
+                    let new_directional = new THREE.DirectionalLight(new THREE.Color(light_props.color), light_props.intensity)
+                    new_directional.target = scene.getChildByName(light_props.targetName)
+                    return new_directional
+
                     }
             }
 
