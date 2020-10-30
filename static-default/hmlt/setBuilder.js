@@ -6,6 +6,7 @@ import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
 import { createActor } from './three-utils/actorCast.js'
 
 import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
+import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, gesture_wrangler, audio_listener
 
@@ -221,6 +222,22 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
 
 
         return [hasId, setActorId, clearActorRole, updateMediaStream]
+    }
+
+    export const useAnimation = () => {
+
+        let getFuncs = useSceneScripts(LOG_LEVEL.VERBOSE)
+
+        let animate = () => {
+            let animate_script = getFuncs(active_scene)
+            if(animate_script) 
+            {
+                animate_script.animate(hmlt_root.getObjectByName(active_scene))
+            }
+        }
+
+        return animate
+
     }
    
 

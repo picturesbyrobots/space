@@ -13,7 +13,7 @@ import { GLTFLoader } from '/deps/three/examples/jsm/loaders/GLTFLoader.js'
 import { BufferGeometryUtils } from '/deps/three/examples/jsm/utils/BufferGeometryUtils.js'
 import Service from '/space/js/Service.js'
 import RTCPeer from '/space/js/RTCPeer.js'
-import {initBuilder, useActors, useActiveScene } from '/hmlt/setBuilder.js'
+import {initBuilder, useActors, useActiveScene, useAnimation } from '/hmlt/setBuilder.js'
 import RTCLoopback from '/space/js/RTCLoopback.js'
 
 Service.get('docent', docent => {});
@@ -140,6 +140,7 @@ const buildGlRoom = (canvas, config) => {
   
   let hmlt_scene  = initBuilder(scene,set_config,camera,renderer,gestureWrangler, listener, config )
   let [hasActorWithId, setActorId, clearActorRole, updateMediaStream] = useActors()
+  let hmlt_animate = useAnimation()
 
 
 
@@ -477,6 +478,9 @@ const buildGlRoom = (canvas, config) => {
       camera.fov = 60;
     }
 
+
+
+    hmlt_animate()
 
     renderer.render(scene, camera);
   };

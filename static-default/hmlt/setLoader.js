@@ -120,8 +120,11 @@ export const loadSet = (object, config, actor_factory) => {
         scene.name = config.sceneName
 
         let scene_scripts = getFuncs(scene.name)
+
         if(scene_scripts) {
+
             scene_scripts.init(scene)
+            
         }
         
 

@@ -5,7 +5,10 @@ import {LOG_LEVEL, say} from './scenes.js'
 let rainGeo;
 let rainCount
 let street_uniforms
-const particles = 100000;
+const particles = 10000;
+const radius = 200;
+let gravity = .3;
+
 let particleSystem, uniforms, geometry;
 
 
@@ -17,7 +20,6 @@ export const init = (scene_root) => {
     const colors = [];
     const sizes = [];
 
-	const radius = 200;
 
     street_uniforms = {
 
@@ -84,6 +86,9 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
    const color = new THREE.Color();
 
+   let maxSize = .6
+   let minSize = .1
+
    for ( let i = 0; i < particles; i ++ ) {
 
         positions.push( ( Math.random() * 2 - 1 ) * radius );
@@ -94,7 +99,9 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
         colors.push( color.r, color.g, color.b );
 
-        sizes.push(.1);
+        
+         sizes.push( Math.random() * (maxSize -minSize) +minSize);
+
 
 				}
 
@@ -115,7 +122,25 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
 
 export const animate = (scene_root) => {
-    say('BEACH ANIMATE', LOG_LEVEL.VERBOSE)
+    let Y_BOTTOM = -100;
+    let Y_TOP = 300;
+    const time = Date.now() * 0.005;
+    const positions = geometry.attributes.position.array ;
+    const sizes = geometry.attributes.size.array ;
+    let stride = 3;
+    for(let i = 1; i < (particles * 3) ; i+= stride)
+    {
+      let curr_y = positions[i];
+      let size = sizes[Math.floor(i/3)];
+
+      let new_y = curr_y - gravity * (size * 10);
+      new_y = new_y < Y_BOTTOM ? Y_TOP + ( Math.random() * 2 - 1 ) * radius : new_y;
+      
+      positions[i] = new_y;
+
+    }
+    geometry.attributes.position.needsUpdate = true
+
 
 }
 
