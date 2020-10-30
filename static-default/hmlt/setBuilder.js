@@ -6,6 +6,7 @@ import {loadSet} from '/hmlt/spaceLoader.js'
 import { createActor } from './three-utils/actorCast.js'
 import { LOG_LEVEL, useSets } from './setLoader.js'
 
+import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, gesture_wrangler, audio_listener
 
@@ -17,6 +18,7 @@ let config = ""
 
 
 let active_scene = ""; 
+let pc;
 
 const createActors = (object, actors) => {
             actors.forEach(actor_data => {
@@ -54,6 +56,22 @@ export var reload = (scene)  => {
                     Promise.all(promises).then(() => {
                             setScene("beach")
                             scene.add(hmlt_root)
+
+                            let video_data = 
+                            {
+                                id : "test_video",
+                                uri : "https://hamlet-gl-assets.s3.amazonaws.com/misc/video/clouds.mp4"
+                            }
+
+                            let parameters = {
+                                wallColor : 0xf3f3f3
+                            }
+                                makeVideoArtwork(pc,audio_listener,gesture_wrangler,video_data,parameters)
+                                                .then((results) => {
+                                                let [artwork, setVideoSrc] = results
+                                                
+                                                hmlt_root.add(artwork)
+                                                })
                             Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
 
@@ -123,7 +141,7 @@ const useKnobs = () => {
 
 
     
-export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al) => {
+export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_config) => {
     lighting_panel = new GUI({width: 300})
 
 
@@ -139,6 +157,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al) => {
 
     setStreamFunctions = new Map()
     id_lookup = new Map()
+    pc = party_config
 
     reload(scene)
     useKnobs()

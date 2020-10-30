@@ -97,7 +97,7 @@ export var reload = (scene)  => {
         return
 
     let [getScene, setScene] = useActiveScene()
-    
+
     fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
         .then(
         response => response.json())
@@ -152,9 +152,9 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
         let mode = transform_controls.getMode()
         let which_data = {
-            "translate" : hmlt_root.getObjectByName(active_model_name).position,
-            "scale" : hmlt_root.getObjectByName(active_model_name).scale,
-            "rotate" : hmlt_root.getObjectByName(active_model_name).quaternion,
+            "translate" : hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name).position,
+            "scale" : hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name).scale,
+            "rotate" : hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name).quaternion,
         }
         conn && conn.send('setKnob', {name : "hmlt_build", value : {
             obj: active_model_name, 
@@ -198,12 +198,17 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                 break
 
             case 'p' : 
-                addPointLight(hmlt_root)
+                addPointLight()
                 break
 
             case 'o' : 
-                addSpotLight(hmlt_root)
+                addSpotLight()
                 break
+
+            case 'l' : 
+                addDirectionalLight()
+                break
+
 
 
             case 'x' :
@@ -304,28 +309,63 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
    }
 
-   const addPointLight = (hmlt_root) => {
-        var plight = new THREE.PointLight( 0xff0000, 1, 100, 2 );
-        if(hmlt_root.getObjectByName("pointlight")) 
+   const addDirectionalLight = () => {
+
+        var dlight = new THREE.DirectionalLight(0xff00ff, 1)
+        if(hmlt_root.getObjectByName(active_scene).getObjectByName("dlight")) 
         {
 
-            let suf = hmlt_root.children.filter(child => child.name.includes("pointlight")).length
+            let suf = hmlt_root.getObjectByName(active_scene).children.filter(child => child.name.includes("pointlight")).length
+            dlight.name = `dlight.00${suf}`
+
+        }else {
+            dlight.name = "dlight"
+        }
+
+
+        let light_target = new THREE.Object3D();
+
+        light_target.name = `${dlight.name} - target`
+        light_target.userData = 
+        {
+            isTarget : true,
+            targetOf : dlight.name
+        }
+            
+        dlight.target = light_target
+
+        console.log(dlight)
+        hmlt_root.getObjectByName(active_scene).add(dlight)
+        hmlt_root.getObjectByName(active_scene).add(light_target)
+        guis()
+
+
+
+   }
+
+   const addPointLight = () => {
+        var plight = new THREE.PointLight( 0xff0000, 1, 100, 2 );
+
+        if(hmlt_root.getObjectByName(active_scene).getObjectByName("pointlight")) 
+        {
+
+            let suf = hmlt_root.getObjectByName(active_scene).children.filter(child => child.name.includes("pointlight")).length
             plight.name = `pointlight.00${suf}`
 
         }else {
             plight.name = "pointlight"
         }
-        hmlt_root.add(plight)
-        buildGui(hmlt_root)
+        hmlt_root.getObjectByName(active_scene).add(plight)
+        guis()
    }
 
-   const addSpotLight = (hmlt_root) => {
+   const addSpotLight = () => {
 
     var slight = new THREE.SpotLight(0xff00ff, 1)
-    if(hmlt_root.getObjectByName("spotlight")) 
+    if(hmlt_root.getObjectByName(active_scene).getObjectByName("spotlight")) 
         {
 
-            let suf = hmlt_root.children.filter(child => child.name.includes("spotlight")).length
+            let suf = hmlt_root.getObjectByName(active_scene).children.filter(child => child.name.includes("spotlight")).length
             slight.name = `spotlight.00${suf}`
 
         }else {
@@ -343,10 +383,10 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
             
         slight.target = light_target
 
-        hmlt_root.add(slight)
-        hmlt_root.add(light_target)
+        hmlt_root.getObjectByName(active_scene).add(slight)
+        hmlt_root.getObjectByName(active_scene).add(light_target)
         
-        buildGui(hmlt_root)
+        guis()
    }
 
    const exportTransform = (export_data , o) => {
@@ -411,15 +451,28 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                                             let light_data = {}
                                             light_data.name = light_obj.name;
                                             light_data.type = light_obj.type;
-                                            light_data.distance = light_obj.distance
                                             light_data.color = light_obj.color.getStyle()
-                                            light_data.power = light_obj.power; 
+
+                                            if(light_obj.type !== "DirectionalLight") {
+                                                light_data.distance = light_obj.distance
+                                                light_data.power = light_obj.power; 
+                                            }
                                             if(light_obj.type === "SpotLight") 
                                             {
                                                  light_data.angle = light_obj.angle
                                                  light_data.penumbra = light_obj.penumbra
-                                                 light_data.targetName = light_obj.target.name
 
+                                            }
+                                            if(light_obj.type === "DirectionalLight") 
+                                            {
+                                                 light_data.intensity = light_obj.intensity
+
+                                            }
+                                            if(light_obj.type === "SpotLight" || light_obj.type === "DirectionalLight") 
+                                            {
+
+                                                light_data.targetName = light_obj.target.name
+                                                light_data.targetName = light_obj.target.name
                                             }
                                             
 
@@ -507,13 +560,16 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
    
 
-   const buildLightGui = (root) => {
+   const buildLightGui = () => {
 
         let validLights = ["DirectionalLight", "PointLight", "SpotLight"] 
         // bail if we have no objects
         if(active_model_name === "") return;
-        let selected_obj = hmlt_root.getObjectByName(active_model_name);
 
+        
+        let selected_obj = hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name);
+
+        if(selected_obj === undefined) return
         if(!validLights.includes(selected_obj.type)) return
 
 
@@ -551,7 +607,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                 active_light_folder.add(default_settings, 'light name').onChange(
                     (new_name) => {
 
-                        if(selected_obj.type === "SpotLight") 
+                        if(selected_obj.type === "SpotLight" || selected_obj.type === "DirectionalLight") 
                         {
 
                             let new_target_name = `${new_name} - target`
@@ -565,6 +621,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                         
                         buildGui(hmlt_root)
 
+
                     })
                     active_light_folder.addColor(default_settings, 'light color').onChange(
                         (val) => {
@@ -572,21 +629,27 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                             render()
                     })
 
-                    active_light_folder.add(default_settings, 'power', 0, 2000).onChange(
-                        (val) => {
-                            selected_obj.power= val
-                            sendLightInfo("power", val)
-                            render()
-                        }
-                    )
 
-                    active_light_folder.add(default_settings, 'distance',0, 2000).onChange(
+                    
+
+                    
+                    if(selected_obj.type !== "DirectionalLight") {
+                        active_light_folder.add(default_settings, 'power', 0, 2000).onChange(
+                            (val) => {
+                                selected_obj.power= val
+                                sendLightInfo("power", val)
+                                render()
+                            }
+                        )
+                        active_light_folder.add(default_settings, 'distance',0, 2000).onChange(
                         (val) => {
                             selected_obj.distance= val
                             sendLightInfo("distance", val)
                             render()
                         }
                     )
+                    }
+
         }
         switch(selected_obj.type) 
         {
@@ -619,6 +682,21 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                         render()
                 })
 
+                break;
+            case "DirectionalLight" :
+                let directional_settings = 
+                {
+                    intensity : selected_obj.intensity
+                }
+                
+                light_settings = {...default_settings, ...directional_settings}
+                addDefaults();
+                active_light_folder.add(light_settings, 'intensity', 0, 300.0).onChange(
+                    (val) => {
+                        selected_obj.intensity = val
+                        render()
+                    }
+                )
 
 
 

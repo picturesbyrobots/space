@@ -8,6 +8,7 @@
 <script type=module>
 
 import * as THREE from '/deps/three/build/three.module.js'
+import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
 import { GLTFLoader } from '/deps/three/examples/jsm/loaders/GLTFLoader.js'
 import { BufferGeometryUtils } from '/deps/three/examples/jsm/utils/BufferGeometryUtils.js'
 import Service from '/space/js/Service.js'
@@ -130,22 +131,19 @@ const buildGlRoom = (canvas, config) => {
   const updateBalloons = [];
   
 
-  const floor = new THREE.Mesh(
-    new THREE.CircleBufferGeometry(100000),
-    new THREE.MeshPhongMaterial( {
-      color: 0x222222,
-      emissive: 0x221122,
-      shininess: 20,
-    } ));
-  floor.rotation.x = -Math.PI / 2;
 
   
   let set_config = "hmltConfig.js"
 
+
   
   
-  let hmlt_scene  = initBuilder(scene,set_config,camera,renderer,gestureWrangler, listener )
+  let hmlt_scene  = initBuilder(scene,set_config,camera,renderer,gestureWrangler, listener, config )
   let [hasActorWithId, setActorId, clearActorRole, updateMediaStream] = useActors()
+
+
+
+
 
   
 
