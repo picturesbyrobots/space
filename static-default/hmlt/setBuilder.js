@@ -76,9 +76,9 @@ export var reload = (scene)  => {
                             
 
                              scene.add(hmlt_root)
-                             scene.fog = new THREE.FogExp2(0x2e2e2e, 0.013 );
-                             let setFog = useFog(scene)
-                             setFog("street")
+                            //  scene.fog = new THREE.FogExp2(0x2e2e2e, 0.013 );
+                            //  let setFog = useFog(scene)
+                            //  setFog("street")
                              //scene.fog = new THREE.FogExp2(0xcd9c7c, 0.013 );
 
                             Service.get('knobs', knobs => { 
@@ -88,7 +88,7 @@ export var reload = (scene)  => {
                                     if(msg.cmd === "setScene") 
                                     {
                                         setScene(msg.data)
-                                        setFog(msg.data)
+                                        //setFog(msg.data)
                                     }
 
                                 })
