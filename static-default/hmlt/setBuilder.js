@@ -73,7 +73,13 @@ export var reload = (scene)  => {
                    let promises = data.map(set_data => {return loadSet(hmlt_root, set_data, createActors)})
                     Promise.all(promises).then(() => {
                             setScene("street")
-                            scene.add(hmlt_root)
+                            
+
+                             scene.add(hmlt_root)
+                             scene.fog = new THREE.FogExp2(0x2e2e2e, 0.013 );
+                             let setFog = useFog(scene)
+                             setFog("street")
+                             //scene.fog = new THREE.FogExp2(0xcd9c7c, 0.013 );
 
                             Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
@@ -82,6 +88,7 @@ export var reload = (scene)  => {
                                     if(msg.cmd === "setScene") 
                                     {
                                         setScene(msg.data)
+                                        setFog(msg.data)
                                     }
 
                                 })
@@ -94,6 +101,26 @@ export var reload = (scene)  => {
 
 
 
+const useFog = (scene) => {
+    let lookup = 
+    {
+        "interior" : [0xebdb9d, 0.029],
+        "street" : [0x2e2e2e, 0.013]
+    }
+    const setFog = (scene_name) =>  {
+
+        if(Object.keys(lookup).includes(scene_name)) 
+        {
+            return   
+        }
+        let [c,d] = lookup[scene_name];
+        scene.fog.color = c
+        scene.fog.density = d
+    }
+    
+    return setFog
+    
+}
 
 const useKnobs = () => {
        Service.get('knobs', knobs => {
@@ -105,7 +132,7 @@ const useKnobs = () => {
                         case "transform_update" :
                         {
 
-                            let active_obj = hmlt_root.getObjectByName(msg.obj)
+                            let active_obj = hmlt_root.getObjectByName(active_scene).getObjectByName(msg.obj)
                             if(active_obj === undefined) 
                             {
                                 return
@@ -165,13 +192,15 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
     reload(scene)
     useKnobs()
 
+    
+    
+
     }
         
     export const useActiveScene = () => {
         let update_scenes = (active_scene_name) => {
-            console.log("update scene")
             hmlt_root.children.map(child => {
-                if(child.name === active_scene_name) {
+                if(child.name === active_scene_name || child.userData.alwaysRender === true) {
                     child.visible = true
                 }else {
                     child.visible = false
