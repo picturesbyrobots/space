@@ -80,7 +80,6 @@ const createSky = () => {
       starMaterial.opacity = (opacity + motion * (Math.sin(performance.now() / 1000 + i / 2.) * 0.5));
     };
 
-    sky.add(starGroup);
   }
   sky.position.y = 500;
   return sky;

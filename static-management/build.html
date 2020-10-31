@@ -9,6 +9,8 @@
 <button type=button onclick="adminAction('reconnect', 'websocket')">Reconnect WebSocket</button>
 <button type=button onclick="hmltAction('setScene', 'beach')">Set Beach</button>
 <button type=button onclick="hmltAction('setScene', 'interior')">Set Interior</button>
+<button type=button onclick="hmltSMAction('sendTrigger', 'start')">Animate Lex</button>
+<button type=button onclick="hmltSMAction('sendTrigger', 'stop')">Reset Lex</button>
 <ul id=knobsEl></ul>
 <template id=knobTemplate>
   <li>
@@ -72,6 +74,16 @@ window.hmltAction = (type, body) => {
   })
 
 }
+
+window.hmltSMAction = (type, body) => {
+conn && conn.send('setKnob', {name : "hmlt_run", value : {
+    cmd : "void::animate",
+    data : body
+    }
+  })
+
+}
+
 
 
 </script>
