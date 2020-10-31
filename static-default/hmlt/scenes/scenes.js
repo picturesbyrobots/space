@@ -3,6 +3,7 @@ import * as beach_functions from './beach.js'
 import * as street_functions from './street.js'
 import * as interior_functions from './interior.js'
 import * as void_functions from './void.js'
+import * as sculpture_functions from './sculpture.js'
 
 
 let module_name = "USES SCRIPTS"
@@ -38,6 +39,7 @@ export const useSceneScripts = (lvl) => {
     script_map.set("beach",{init : beach_functions.init, animate :beach_functions.animate})
     script_map.set("street",{init : street_functions.init, animate : street_functions.animate})
     script_map.set("void", {init : void_functions.init, animate: void_functions.animate})
+    script_map.set("sculpture", {init : sculpture_functions.init, animate: sculpture_functions.animate})
 
     let get_funcs = (scene_name) => {
 
