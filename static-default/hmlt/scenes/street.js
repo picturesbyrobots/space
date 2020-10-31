@@ -1,13 +1,13 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {LOG_LEVEL, say} from './scenes.js'
-
+import {setRepeat} from '/hmlt/three-utils/textureTools.js'
 
 let rainGeo;
 let rainCount
 let street_uniforms
-const particles = 10000;
+const particles = 50000;
 const radius = 200;
-let gravity = .3;
+let gravity = .1;
 
 let particleSystem, uniforms, geometry;
 
@@ -86,8 +86,8 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
    const color = new THREE.Color();
 
-   let maxSize = .6
-   let minSize = .1
+   let maxSize = 1
+   let minSize = .3
 
    for ( let i = 0; i < particles; i ++ ) {
 
@@ -95,7 +95,7 @@ const shaderMaterial = new THREE.ShaderMaterial( {
         positions.push( ( Math.random() * 2 - 1 ) * radius );
         positions.push( ( Math.random() * 2 - 1 ) * radius );
 
-        color.setHSL( 360, 1.0, 0.5 );
+        color.set(0x272f3d)
 
         colors.push( color.r, color.g, color.b );
 
@@ -115,6 +115,49 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
       scene_root.add(particleSystem)
 
+      const skyGeo = new THREE.SphereBufferGeometry(3200, 32, 15 );
+      const material = new THREE.MeshBasicMaterial( {
+                                  side : THREE.DoubleSide,
+                                  color: 0x2e2e2e} );
+
+      const sky = new THREE.Mesh(skyGeo, material);
+      scene_root.add(sky)
+      let cr = new THREE.Vector2(10,6)
+      let cm = scene_root.getObjectByName("cobblestones").material
+      setRepeat(cm, 24, 10 )
+      let loader = new THREE.TextureLoader();
+      let uri = 'https://hamlet-gl-assets.s3.amazonaws.com/street/textures/smoke-1.png'
+      loader.load(uri, (texture) => {
+          let cloudGeo = new THREE.PlaneBufferGeometry(140,140);
+          let cloudMaterial = new THREE.MeshLambertMaterial({
+                               map: texture,
+                               transparent: true,
+                               side : THREE.DoubleSide,
+                               opacity : .6,
+                               depthTest : true
+
+        });
+
+        let maxX = 500;
+        let minX = -500;
+        let rand_range = (min,max) => {
+          return Math.random() * (max - min) + min  
+        }
+        for(let p = 0; p <3; p++) 
+        {
+            let cloud =new THREE.Mesh(cloudGeo, cloudMaterial)
+             cloud.position.set(rand_range(-50, 59), rand_range(80, 120), rand_range(-50,50))
+
+             scene_root.add(cloud)
+
+        }
+
+
+          
+        
+      })
+
+      
 
     return 1
 
