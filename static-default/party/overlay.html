@@ -20,7 +20,7 @@ body {
 #topright {
   position: absolute;
   top: 0;
-  right: 0;
+  right: 20%;
   display: flex;
   align-items: flex-start;
 }
@@ -41,15 +41,6 @@ select, input, button {
 #stopActing {
   background: #c00;
   color: white;
-}
-
-#preview {
-  width: 15vw;
-  display: block;
-  object-fit: cover;
-  border-bottom-right-radius: 1em;
-  transform: scale(-1, 1);
-  margin-left: 1em;
 }
 
 #chat {
@@ -129,7 +120,6 @@ select, input, button {
 <div id=topright>
 <button id=startActing>Start acting…</button>
 <button id=stopActing style="display: none">Stop acting</button>
-<video muted id=preview playsinline></video>
 </div>
 <div id=chat>
   <ul data-click-through></ul>
@@ -213,11 +203,6 @@ Service.get('userMedia', userMedia => {
     if (audioTrack) {
       defaultAudioDevice = audioTrack.getSettings().deviceId;
     }
-
-    if (preview.srcObject == stream)
-      return;
-    preview.srcObject = stream;
-    preview.play();
   });
 
 

@@ -194,6 +194,7 @@ class Room {
       return;
     this.updateGuest('self', this.player.toJSON());
     sessionStorage.playerState = newStateJSON;
+    this.updateGuest('self', this.player);
     if (this.ws && this.ws.open) {
       this.ws.send({
         type: "state",
@@ -251,6 +252,9 @@ Service.get('userMedia', userMedia => {
       room.mediaStream.addTrack(track);
     if (room.rtcPeer)
       room.rtcPeer.updateTracks();
+    const self = room.getOrCreateGuest('self');
+    self.videoTrack = stream.getVideoTracks()[0];
+    room.observers.fire('updateMedia', 'self', self);
   });
 });
 
