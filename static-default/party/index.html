@@ -367,8 +367,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
   const updateGuest = (id, remoteGuest) => {
     
     // it's hacks all the way down ;-) 
-
-    if(remoteGuest.state.role.includes('actor'))
+    if(remoteGuest.state.role && remoteGuest.state.role.includes('actor'))
     {
       let [_, actor_name] = remoteGuest.state.role.split("::")
       setActorId(actor_name, id)
