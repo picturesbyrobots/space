@@ -194,7 +194,6 @@ class Room {
       return;
     this.updateGuest('self', this.player.toJSON());
     sessionStorage.playerState = newStateJSON;
-    this.updateGuest('self', this.player);
     if (this.ws && this.ws.open) {
       this.ws.send({
         type: "state",

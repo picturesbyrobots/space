@@ -443,7 +443,6 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     clearActorRole(id);
     if (id == 'self') {
       ownActorName = '';
-      return;
     }
     if (remoteGuest.state.role == 'cast') {
       projectorId = id;
@@ -563,8 +562,8 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       const obj = scene.getObjectByName(ownActorName);
       if (obj) {
         obj.add(camera);
-        camera.position.set(0, 0, 0);
-        camera.rotation.set(0, Math.PI, 0);
+        camera.position.set(0, 10, -15);
+        camera.rotation.set(-Math.PI/8, Math.PI, 0);
         camera.fov = 100;
       }
     } else {
@@ -580,9 +579,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
 
     renderer.render(scene, camera);
 
-    if (guests.self) {
-      playerRenderer.render(playerScene, playerCamera);
-    }
+    playerRenderer.render(playerScene, playerCamera);
   };
 
   const clearGuests = () => {
