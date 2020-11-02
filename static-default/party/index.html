@@ -28,7 +28,7 @@ const hqs = location.hash
 
   console.log(hqs)
 
-const createSoundPlayer = ac => {
+const createSoundPlayer = (ac, destination) => {
   const soundPromises = {};
   const playingSounds = {};
 
@@ -53,7 +53,7 @@ const createSoundPlayer = ac => {
           source: null,
           gain: ac.createGain(),
         };
-        sound.gain.connect(ac.destination);
+        sound.gain.connect(destination);
         getSound(k).then(buf => {
           const source = ac.createBufferSource();
           source.buffer = buf;
@@ -153,6 +153,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
   camera.rotation.order = 'YXZ';
 
   const listener = new THREE.AudioListener();
+  const sounds = createSoundPlayer(listener.context, listener.gain);
 
   // Work around for missing echo cancellation on many kinds of audio:
   // https://crbug.com/687574
@@ -644,7 +645,6 @@ const buildRoom = (el, config) => {
 
   Service.get('room', room => {
     const ac = room.ac;
-    const sounds = createSoundPlayer(ac);
     player = room.player;
 
     room.join();
