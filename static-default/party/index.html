@@ -28,6 +28,65 @@ const hqs = location.hash
 
   console.log(hqs)
 
+const createSoundPlayer = ac => {
+  const soundPromises = {};
+  const playingSounds = {};
+
+  const update = state => {
+    for (const k in playingSounds) {
+      const sound = playingSounds[k];
+      if (k in state) {
+        if (state[k].volume != sound.gain.gain.value)
+          sound.gain.gain.setTargetAtTime(state[k].volume, ac.currentTime, 0.1);
+        if (state[k].playTime == sound.playTime)
+          continue;
+      }
+      delete playingSounds[k];
+      sound.gain.gain.setTargetAtTime(0, ac.currentTime, 0.5);
+      sound.source.stop(ac.currentTime + 2);
+    }
+    for (const k in state) {
+      if (playingSounds[k]) {
+      } else {
+        const sound = playingSounds[k] = {
+          playTime: state[k].playTime,
+          source: null,
+          gain: ac.createGain(),
+        };
+        sound.gain.connect(ac.destination);
+        getSound(k).then(buf => {
+          const source = ac.createBufferSource();
+          source.buffer = buf;
+          source.loop = true;
+          source.start(ac.currentTime, ((Date.now() - sound.playTime) / 1000) % buf.duration);
+          console.log('start playback at', ((Date.now() - sound.playTime) / 1000) % buf.duration);
+          source.connect(sound.gain);
+          sound.source = source;
+          sound.gain.gain.setValueAtTime(0, ac.currentTime);
+          sound.gain.gain.setTargetAtTime(state[k].volume, ac.currentTime, 0.5);
+        });
+      }
+    }
+  }
+  
+  const getSound = (url) => {
+    return soundPromises[url] || (soundPromises[url] = 
+      fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(ab => ac.decodeAudioData(ab))
+        );
+  }
+
+  window.addEventListener('unload', () => {
+    update({});
+  });
+
+  Service.get('knobs', knobs => {
+    knobs.observe('hmlt_sound', state => {
+      update(state);
+    });
+  });
+}
 
 const createStatsTracker = () => {
   let ws;
@@ -585,6 +644,7 @@ const buildRoom = (el, config) => {
 
   Service.get('room', room => {
     const ac = room.ac;
+    const sounds = createSoundPlayer(ac);
     player = room.player;
 
     room.join();

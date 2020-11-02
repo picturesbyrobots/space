@@ -32,3 +32,61 @@ html {
   transition: opacity 2s linear;
   opacity: 0.3;
 }
+
+#soundCues {
+  list-style: none;
+  padding: 0;
+  display: flex;
+}
+
+#soundCues > li {
+  border: 1px solid black;
+  border-radius: 0.75em;
+  padding: 1em;
+  width: 20em;
+}
+
+#soundCues > li h1 {
+  margin: 0;
+  font-size: 1.75em;
+}
+
+#soundCues > li .buttons {
+  display: flex;
+  margin-top: 0.5em;
+}
+
+#soundCues > li button {
+  font: inherit;
+  font-size: 1.3em;
+  flex: 1;
+  margin: 0 0.25em;
+  height: 2em;
+  border: none;
+}
+
+#soundCues .time {
+  margin: 0.75em;
+  font-size: 1.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#soundCues .startButton {
+  background: green;
+  color: white;
+}
+
+#soundCues .stopButton {
+  background: #c00;
+  color: white;
+}
+
+#soundCues button:disabled {
+  background: #aaa;
+}
+
+#soundCues .volume {
+  width: 100%;
+  margin: 0.5em 0;
+}
