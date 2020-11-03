@@ -42,6 +42,7 @@ export const useSceneScripts = (lvl) => {
     script_map.set("void", {init : void_functions.init, animate: void_functions.animate})
     script_map.set("sculpture", {init : sculpture_functions.init, animate: sculpture_functions.animate})
     script_map.set("claudius", {init : claudius_functions.init, animate: claudius_functions.animate})
+    script_map.set("interior", {init : interior_functions.init, animate: interior_functions.animate})
 
     let get_funcs = (scene_name) => {
 

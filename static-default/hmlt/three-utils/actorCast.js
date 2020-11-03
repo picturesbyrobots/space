@@ -80,6 +80,7 @@ export const createActor = (object, parameters) => {
     }
 
     const actor_element = document.createElement('video')
+    actor_element.id = `${options.name}-vid-el`
     actor_element.playsInline = true;
     actor_element.muted = true;
 
@@ -99,6 +100,8 @@ export const createActor = (object, parameters) => {
     //         map : videoTexture
     //     }))
 
+    const actor_obj = new THREE.Group()
+
     const mesh = new THREE.Mesh(
          new THREE.PlaneBufferGeometry(options.width, options.height),
          chromaMat
@@ -111,7 +114,7 @@ export const createActor = (object, parameters) => {
 
     let sound =  new THREE.Audio(options.listener)
 
-    mesh.add(sound);
+    actor_obj.add(sound);
 
 
     const setStream = (stream) => {
@@ -136,14 +139,19 @@ export const createActor = (object, parameters) => {
     mesh.userData.isActor = true
 
 
+    actor_obj.userData.cloneActor  = () => {
+      return mesh.clone() 
+    }
 
 
-    mesh.name = options.name
-    object.add(mesh)
-    mesh.rotation.setFromQuaternion(options.rotation)
+    mesh.name = `${options.name}-mesh`
+    actor_obj.name = options.name
+    actor_obj.add(mesh)
+    object.add(actor_obj)
+    actor_obj.rotation.setFromQuaternion(options.rotation)
 
-    mesh.scale.copy(options.scale)
+    actor_obj.scale.copy(options.scale)
 
-    mesh.position.copy(options.position)
-    return [mesh, setStream, getStream]
+    actor_obj.position.copy(options.position)
+    return [actor_obj, setStream, getStream]
 }
