@@ -103,12 +103,18 @@ export var reload = (scene)  => {
         response => response.json())
         .then(data =>  {
                   config_data = data
-                  console.log(data)
-                 let promises = data.map(set => {
+                  let promises = data.map(set => {
                                        return loadSet(hmlt_root, set, (obj, actor_data)=> {
                                              actor_data.forEach(actor => {
-
-                                                createActor(obj, actor)
+                                                let {x,y,z} = actor.transform.position;
+                                                let [sx,sy,sz] = actor.transform.scale;
+                                                let [qx,qy,qz,qw] =actor.transform.rotation
+                                                
+                                                createActor(obj, { name : actor.name,
+                                                                    position : new THREE.Vector3(x,y,z),
+                                                                    scale : new THREE.Vector3(sx,sy,sz),
+                                                                    rotation : new THREE.Quaternion(qx,qy,qz,qw)
+                                                                 })
 
                                              })}
                                             )
