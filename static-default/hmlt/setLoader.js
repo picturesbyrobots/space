@@ -88,14 +88,13 @@ export const loadSet = (object, config, actor_factory) => {
                     new_spot.power = light_props.power;
                     new_spot.angle = light_props.angle;
                     new_spot.penumbra = light_props.penumbra;
-                    new_spot.target = scene.getChildByName(light_props.targetName)
+                    new_spot.target = scene.getObjectByName(light_props.targetName)
                     return new_spot
 
                     },
                    "DirectionalLight" : (light_props)  => {
-                    console.log("new directional")
                     let new_directional = new THREE.DirectionalLight(new THREE.Color(light_props.color), light_props.intensity)
-                    new_directional.target = scene.getChildByName(light_props.targetName)
+                    new_directional.target = scene.getObjectByName(light_props.targetName)
                     return new_directional
                    }
             }

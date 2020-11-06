@@ -14,7 +14,6 @@ let particleSystem, uniforms, geometry;
 
 export const init = (scene_root) => {
 
-    say('STREET INIT', LOG_LEVEL.VERBOSE)
     rainGeo = new THREE.BufferGeometry()
     const positions = [];
     const colors = [];

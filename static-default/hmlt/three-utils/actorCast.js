@@ -80,6 +80,7 @@ export const createActor = (object, parameters) => {
     }
 
     const actor_element = document.createElement('video')
+    actor_element.id = `${options.name}-vid-el`
     actor_element.playsInline = true;
     actor_element.muted = true;
 
@@ -98,6 +99,7 @@ export const createActor = (object, parameters) => {
     //         side : THREE.DoubleSide,
     //         map : videoTexture
     //     }))
+
 
     const mesh = new THREE.Mesh(
          new THREE.PlaneBufferGeometry(options.width, options.height),
@@ -148,7 +150,7 @@ export const createActor = (object, parameters) => {
     mesh.userData.isActor = true
 
 
-
+    
 
     mesh.name = options.name
     object.add(mesh)
@@ -158,4 +160,4 @@ export const createActor = (object, parameters) => {
 
     mesh.position.copy(options.position)
     return [mesh, setStream, getStream]
-}
+    }

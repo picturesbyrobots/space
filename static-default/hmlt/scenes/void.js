@@ -40,30 +40,30 @@ let start_pos = new THREE.Vector3(0,0,0)
 export const init = (scene_root) => 
 {
     scene_root.add(createSky())
-    Service.get('knobs', knobs => { 
-                                knobs.observe('hmlt_run', msg => {
+    // Service.get('knobs', knobs => { 
+    //                             knobs.observe('hmlt_run', msg => {
 
-                                    if(msg === undefined) return
-                                    if(msg.cmd === "void::animate"){
+    //                                 if(msg === undefined) return
+    //                                 if(msg.cmd === "void::animate"){
 
-                                    console.log(msg)
-                                    if(msg.data === "start") 
-                                    {
-                                        run_move = true;
-                                        console.log("Animate Lex")
-                                        // save his position for restart KNOBS!!!
-                                        if(scene_root.getObjectByName("lex") !== undefined) {
-                                            start_pos.copy(scene_root.getObjectByName("lex").position)
-                                        }
-                                        }
-                                        if(msg.data=== "stop") 
-                                        {
-                                            run_move = false;
-                                            scene_root.getObjectByName("lex").position.copy(start_pos)
-                                        }
-                                    }
-                                })
-                            })
+    //                                 console.log(msg)
+    //                                 if(msg.data === "start") 
+    //                                 {
+    //                                     run_move = true;
+    //                                     console.log("Animate Lex")
+    //                                     // save his position for restart KNOBS!!!
+    //                                     if(scene_root.getObjectByName("lex") !== undefined) {
+    //                                         start_pos.copy(scene_root.getObjectByName("lex").position)
+    //                                     }
+    //                                     }
+    //                                     if(msg.data=== "stop") 
+    //                                     {
+    //                                         run_move = false;
+    //                                         scene_root.getObjectByName("lex").position.copy(start_pos)
+    //                                     }
+    //                                 }
+    //                             })
+    //                         })
 
     
 }
@@ -72,11 +72,11 @@ export const init = (scene_root) =>
 export const animate= (scene_root) => 
 {
 
-    let lex = scene_root.getObjectByName("lex")
-    if(lex !== undefined && run_move) 
-    {
+    // let lex = scene_root.getObjectByName("lex")
+    // if(lex !== undefined && run_move) 
+    // {
 
-        lex.position.add(speed)
-    }
+    //     lex.position.add(speed)
+    // }
 
 }
