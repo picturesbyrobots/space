@@ -139,20 +139,39 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
         let maxX = 500;
         let minX = -500;
-        let rand_range = (min,max) => {
-          return Math.random() * (max - min) + min  
-        }
-        for(let p = 0; p <3; p++) 
+        
+        [
         {
-            let cloud =new THREE.Mesh(cloudGeo, cloudMaterial)
-             cloud.position.set(rand_range(-50, 59), rand_range(80, 120), rand_range(-50,50))
+            position : [-50, 170, -200],
+            rotZ : 190,
+            scale : [4.4, 4.4, 4.4]
 
+          },
+          {
+            position : [-50, 120, -120],
+            rotZ : 20,
+            scale : [1.4, 1.4, 1.4]
+
+          },
+          {
+            position : [ 50, 80, -80],
+            rotZ : 0,
+            scale : [1.0, 1.0, 1.0]
+
+          }
+
+        ].map(prop=> {
+             let [x,y,z] = prop.position
+             let [sx,sy,sz] = prop.scale
+            let cloud =new THREE.Mesh(cloudGeo, cloudMaterial)
+             cloud.rotateZ(prop.rotZ)
+             cloud.scale.set(sx,sy,sz)
+             cloud.position.set(x,y,z)
              scene_root.add(cloud)
 
-        }
-
-
-          
+        })
+      
+        
         
       })
 
