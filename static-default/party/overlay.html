@@ -208,10 +208,10 @@ Service.get('userMedia', userMedia => {
   });
 
   let acting = false;
-  let talkToActor = false;
+  let actorRawMic = false;
 
   const applySomeConstraints = async () => {
-    if (acting && !talkToActor)
+    if (acting && actorRawMic)
       room && room.ac.suspend();
     else
       room && room.ac.resume();
@@ -225,15 +225,15 @@ Service.get('userMedia', userMedia => {
       } : userMedia.defaultConstraints.video,
       audio: acting ? {
         noiseSuppression: false,
-        echoCancellation: talkToActor,
+        echoCancellation: !actorRawMic,
         deviceId: { exact: defaultAudioDevice },
       } : userMedia.defaultConstraints.audio,
     });
   };
 
   Service.get('knobs', knobs => {
-    knobs.observe('talkToActor', newValue => {
-      talkToActor = newValue;
+    knobs.observe('actorRawMic', newValue => {
+      actorRawMic = newValue;
       if (acting)
         applySomeConstraints();
     });
