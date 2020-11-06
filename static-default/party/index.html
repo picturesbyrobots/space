@@ -580,15 +580,17 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       const obj = scene.getObjectByName(ownActorName);
       if (obj) {
         obj.add(camera);
-        camera.position.set(0, 10, -25);
-        camera.rotation.set(-Math.PI/8, Math.PI, 0);
-        camera.fov = 100;
+        camera.position.set(0, 9, -10);
+        camera.rotation.set(-Math.PI/11, Math.PI, 0);
+        camera.fov = 80;
+        camera.updateProjectionMatrix();
       }
     } else {
       scene.add(camera);
       camera.position.set(position[0], 6 + position[2], -position[1]);
       camera.rotation.set(-look[1], -look[0], 0);
       camera.fov = 60;
+      camera.updateProjectionMatrix();
     }
 
 
