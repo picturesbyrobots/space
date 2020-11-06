@@ -114,20 +114,32 @@ export const createActor = (object, parameters) => {
     mesh.add(sound);
 
 
-    const setStream = (stream) => {
-        if (actor_element.srcObject == stream)
-          return
-        actor_element.srcObject = stream;
-        if (stream) {
+    const setStream = newStream => {
+        if (newStream) {
+          if (!actor_element.srcObject) {
+            actor_element.srcObject = new MediaStream(newStream.getTracks());
+          } else {
+            const stream = actor_element.srcObject;
+            const oldTracks = new Set(stream.getTracks());
+            for (const track of newStream.getTracks()) {
+              if (!oldTracks.has(track))
+                stream.addTrack(track);
+              else
+                oldTracks.delete(track);
+            }
+            for (const track of oldTracks)
+              stream.removeTrack(track);
+          }
           mesh.visible = true;
           options.gestureWrangler.playVideo(actor_element);
-          sound.setMediaStreamSource(stream);
         } else {
+          actor_element.srcObject = null;
           mesh.visible = false;
-          sound.disconnect();
         }
-
-
+        if (actor_element.srcObject && actor_element.srcObject.getAudioTracks().length)
+          sound.setMediaStreamSource(actor_element.srcObject);
+        else if (sound.source)
+          sound.disconnect();
     }
 
     const getStream = () => {

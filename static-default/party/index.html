@@ -366,9 +366,21 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
 
     const updateTracks = () => {
         const tracks = [videoTrack, audioTrack].filter(t => t);
-        const stream = tracks.length ? new MediaStream(tracks) : null;
-        videoEl.srcObject = stream;
-        gestureWrangler.playVideo(videoEl);
+        const stream = tracks.length ? (videoEl.srcObject || new MediaStream(tracks)) : null;
+        if (videoEl.srcObject != stream)
+          videoEl.srcObject = stream;
+        if (stream) {
+          const oldTracks = new Set(stream.getTracks());
+          for (const track of tracks) {
+            if (!oldTracks.has(track))
+              stream.addTrack(track);
+            else
+              oldTracks.delete(track);
+          }
+          for (const track of oldTracks)
+            stream.removeTrack(track);
+          gestureWrangler.playVideo(videoEl);
+        }
         if (audioTrack) {
           try {
             if (!sessionStorage.noPositionalSound)

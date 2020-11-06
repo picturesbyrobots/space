@@ -104,10 +104,10 @@ class UserMediaClient {
     userMedia.restart();
     userMedia.observers.fire('audioMuted', userMedia.audioMuted);
   }
-  applyConstraints(newConstraints) {
+  async applyConstraints(newConstraints) {
     Object.assign(userMedia.pendingConstraints, newConstraints);
     if (userMedia.activeConstraints)
-      userMedia.restart();
+      await userMedia.restart();
   }
 }
 
