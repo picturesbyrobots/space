@@ -354,8 +354,14 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     videoTexture.format = THREE.RGBFormat;
     videoTexture.offset.set(-0.25, 0);
     videoPanel.material.uniforms.map.value = videoTexture;
-    videoEl.addEventListener('playing', () => {
+    const setSize = () => {
       videoPanel.material.uniforms.aspect.value = videoEl.videoWidth / videoEl.videoHeight;
+    }
+    videoEl.addEventListener('resize', () => {
+      setSize();
+    });
+    videoEl.addEventListener('playing', () => {
+      setSize();
       head.add(videoPanel);
     });
     videoEl.addEventListener('paused', () => {

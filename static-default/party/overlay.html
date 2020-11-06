@@ -214,7 +214,7 @@ Service.get('userMedia', userMedia => {
       video: {
         width: 1280,
         height: 720,
-        aspectRatio: 1920/1080,
+        aspectRatio: { exact: 1920/1080 },
         deviceId: { exact: defaultVideoDevice },
       },
       audio: {
