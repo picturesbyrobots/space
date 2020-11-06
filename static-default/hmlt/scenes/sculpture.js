@@ -52,33 +52,46 @@ export const init = (scene_root) =>
      let cm = scene_root.getObjectByName("grassfloor").material
       setRepeat(cm, 24, 10)
 
-            let loader = new THREE.TextureLoader();
-        let uri = 'https://hamlet-gl-assets.s3.amazonaws.com/street/textures/smoke-1.png'
-      loader.load(uri, (texture) => {
-          let cloudGeo = new THREE.PlaneBufferGeometry(140,140);
-          let cloudMaterial = new THREE.MeshLambertMaterial({
-                               map: texture,
-                               transparent: true,
-                               side : THREE.DoubleSide,
-                               opacity : .6,
-                               depthTest : true
-
-        });
-
-        let maxX = 500;
-        let minX = -500;
-        let rand_range = (min,max) => {
-          return Math.random() * (max - min) + min  
-        }
+       
+      let sculpture = scene_root.getObjectByName("fallingman");
+      console.log(sculpture)
+      sculpture.userData = 
+            {
+                  animate: true,
+                  axis : 0
+            } 
         
-    })
     
 }
 
 
+const up = new THREE.Vector3(0,1,0)
+let angle = 0.0;
+let rot_speed = 0.001
+const spin = (obj) => {
+      switch(obj.userData.axis) {
+
+            case 0 : 
+                  obj.rotateY(rot_speed)
+                  break; 
+            case 1 :
+                  obj.rotateX(rot_speed)
+                  break
+            case 2 :
+                  obj.rotateZ(rot_speed)
+                  break
+
+
+      }
+
+}
+
 export const animate= (scene_root) => 
 {
 
-    
+      scene_root.children.map(child =>  {
+            child.userData.animate && spin(child)
+
+      })
 
 }
