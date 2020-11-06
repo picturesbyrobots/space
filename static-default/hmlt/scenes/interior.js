@@ -36,7 +36,7 @@ export const init = (scene_root) =>
             let dup = new THREE.Mesh(actor_mesh.geometry, actor_mesh.material)
             dup.position.set(x,y,z)
             dup.lookAt(dup_lookat)
-            scene_root.add(dup)
+            //scene_root.add(dup)
             duplicates.push(dup)
 
             })
