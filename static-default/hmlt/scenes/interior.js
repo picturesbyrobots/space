@@ -15,31 +15,7 @@ export const init = (scene_root) =>
       let tile_mat = scene_root.getObjectByName('floor').material
 
       setRepeat(tile_mat, 24, 10 )
-      actor_mesh = scene_root.getObjectByName("vince")
-      if(actor_mesh) 
-      {
-
-
-            const position_offsets =
-            [
-                  [-10,10,30],
-                  [10, 10, 50],
-                  [10,10, 30]
-
-            ]
-            position_offsets.map(offset => {
-
-
-                  let [x,y,z] = offset;
-                  //   let new_dup = actor_mesh.userData.cloneActor()
-                  //  scene_root.add(new_dup)
-                  //  duplicates.push(new_dup)
-                  
-
-            })
-
-
-      }
+      
 
       
       const chair_offsets =
@@ -104,7 +80,7 @@ const spin = (obj) => {
 
 export const animate= (scene_root) => 
 {
-      duplicates.map(dup => dup.visible = actor_mesh.getObjectByName("vince-mesh").visible)
+      //duplicates.map(dup => dup.visible = actor_mesh.getObjectByName("vince").visible)
 
       scene_root.children.map(child =>  {
             child.userData.animate && spin(child)
