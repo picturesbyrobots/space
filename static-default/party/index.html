@@ -43,7 +43,8 @@ const createSoundPlayer = (ac, destination) => {
       }
       delete playingSounds[k];
       sound.gain.gain.setTargetAtTime(0, ac.currentTime, 0.5);
-      sound.source.stop(ac.currentTime + 2);
+      if (sound.source)
+        sound.source.stop(ac.currentTime + 2);
     }
     for (const k in state) {
       if (playingSounds[k]) {
@@ -58,7 +59,7 @@ const createSoundPlayer = (ac, destination) => {
           const source = ac.createBufferSource();
           source.buffer = buf;
           source.loop = true;
-          source.start(ac.currentTime, ((Date.now() - sound.playTime) / 1000) % buf.duration);
+          source.start(ac.currentTime, Math.max(0, ((Date.now() - sound.playTime) / 1000) % buf.duration));
           console.log('start playback at', ((Date.now() - sound.playTime) / 1000) % buf.duration);
           source.connect(sound.gain);
           sound.source = source;
