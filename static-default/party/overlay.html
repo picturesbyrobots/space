@@ -178,7 +178,9 @@ topDoc.addEventListener('pointerlockchange', e => {
 Service.get('docent', docent => {});
 
 let whoami;
-Service.get('room', room => {
+let room;
+Service.get('room', r => {
+  room = r;
   whoami = room.whoami;
   player = controls.player = room.player;
 });
@@ -205,24 +207,44 @@ Service.get('userMedia', userMedia => {
     }
   });
 
+  let acting = false;
+  let talkToActor = false;
+
+  const applySomeConstraints = async () => {
+    if (acting && !talkToActor)
+      room && room.ac.suspend();
+    else
+      room && room.ac.resume();
+
+    await userMedia.applyConstraints({
+      video: acting ? {
+        width: 1280,
+        height: 720,
+        aspectRatio: { exact: 1920/1080 },
+        deviceId: { exact: defaultVideoDevice },
+      } : userMedia.defaultConstraints.video,
+      audio: acting ? {
+        noiseSuppression: false,
+        echoCancellation: talkToActor,
+        deviceId: { exact: defaultAudioDevice },
+      } : userMedia.defaultConstraints.audio,
+    });
+  };
+
+  Service.get('knobs', knobs => {
+    knobs.observe('talkToActor', newValue => {
+      talkToActor = newValue;
+      if (acting)
+        applySomeConstraints();
+    });
+  });
 
   startActing.addEventListener('click', async e => {
     const actorName = prompt('Enter your actor name');
     if (!actorName)
       return;
-    await userMedia.applyConstraints({
-      video: {
-        width: 1280,
-        height: 720,
-        aspectRatio: { exact: 1920/1080 },
-        deviceId: { exact: defaultVideoDevice },
-      },
-      audio: {
-        noiseSuppression: false,
-        // echoCancellation: false,
-        deviceId: { exact: defaultAudioDevice },
-      }
-    })
+    acting = true;
+    await applySomeConstraints();
     player.setMeta({
       role: `actor::${actorName.toLowerCase()}`,
     });
@@ -231,13 +253,11 @@ Service.get('userMedia', userMedia => {
   });
 
   stopActing.addEventListener('click', e => {
+    acting = false;
     player.setMeta({
       role: '',
     });
-    userMedia.applyConstraints({
-      video: userMedia.defaultConstraints.video,
-      audio: userMedia.defaultConstraints.audio,
-    });
+    applySomeConstraints();
     startActing.style.display = '';
     stopActing.style.display = 'none';
   });
