@@ -41,44 +41,12 @@ export const init = (scene_root) =>
 
             })
       
-      const chair_offsets =
-            [
-                  [-0,65, 5],
-                  [10, 70, 10],
-                  [10,50, -5]
-
-            ]
-
-      let axis = 0;
-      chair_offsets.map(offset => {
-            let [x,y,z] = offset
-            let new_dup = scene_root.getObjectByName("chair").clone()
-            new_dup.position.set(x,y,z)
-            new_dup.userData = 
-            {
-                  animate : true,
-                  axis : axis
-            }
-            scene_root.add(new_dup)
-            axis = axis == 3 ? 0 : axis + 1;
-            
-
-
-
-
-      })
+      
 
 
 
      let chair = scene_root.getObjectByName("chair");
-      chair.userData = 
-            {
-                  animate: true,
-                  axis : 0
-            } 
-
-      chair.translateY(20)
-
+     chair.visible= false
 
       
 
