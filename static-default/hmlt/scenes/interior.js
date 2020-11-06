@@ -1,7 +1,8 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {setRepeat} from '/hmlt/three-utils/textureTools.js'
-let actor_mesh = undefined
 let duplicates = []
+
+let dup_lookat = new THREE.Vector3(0,0,0)
 export const init = (scene_root) => 
 {
       const skyGeo = new THREE.SphereBufferGeometry( 3000, 32, 15 );
@@ -16,13 +17,35 @@ export const init = (scene_root) =>
 
       setRepeat(tile_mat, 24, 10 )
       
+      let actor_mesh = scene_root.getObjectByName("vince")
 
+      const  position_offsets =
+            [
+                  [-14,25, -5],
+                  [14, 20, 10],
+                  [-10,10, -5],
+                  [10,10, -5],
+
+
+            ]
+
+      position_offsets.map(offset => 
+            {
+            let [x,y,z] = offset
+
+            let dup = new THREE.Mesh(actor_mesh.geometry, actor_mesh.material)
+            dup.position.set(x,y,z)
+            dup.lookAt(dup_lookat)
+            scene_root.add(dup)
+            duplicates.push(dup)
+
+            })
       
       const chair_offsets =
             [
-                  [-0,25, 5],
-                  [10, 20, 10],
-                  [10,10, -5]
+                  [-0,45, 5],
+                  [10, 40, 10],
+                  [10,30, -5]
 
             ]
 
@@ -47,11 +70,15 @@ export const init = (scene_root) =>
 
 
 
-     scene_root.getObjectByName("chair").userData = 
+     let chair = scene_root.getObjectByName("chair");
+      chair.userData = 
             {
                   animate: true,
                   axis : 0
             } 
+
+      chair.translateY(20)
+
 
       
 
@@ -80,7 +107,7 @@ const spin = (obj) => {
 
 export const animate= (scene_root) => 
 {
-      //duplicates.map(dup => dup.visible = actor_mesh.getObjectByName("vince").visible)
+      duplicates.map(dup => dup.visible = scene_root.getObjectByName("vince").visible)
 
       scene_root.children.map(child =>  {
             child.userData.animate && spin(child)
