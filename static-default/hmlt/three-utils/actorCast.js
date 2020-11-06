@@ -100,7 +100,6 @@ export const createActor = (object, parameters) => {
     //         map : videoTexture
     //     }))
 
-    const actor_obj = new THREE.Group()
 
     const mesh = new THREE.Mesh(
          new THREE.PlaneBufferGeometry(options.width, options.height),
@@ -114,23 +113,35 @@ export const createActor = (object, parameters) => {
 
     let sound =  new THREE.Audio(options.listener)
 
-    actor_obj.add(sound);
+    mesh.add(sound);
 
 
-    const setStream = (stream) => {
-        if (actor_element.srcObject == stream)
-          return
-        actor_element.srcObject = stream;
-        if (stream) {
+    const setStream = newStream => {
+        if (newStream) {
+          if (!actor_element.srcObject) {
+            actor_element.srcObject = new MediaStream(newStream.getTracks());
+          } else {
+            const stream = actor_element.srcObject;
+            const oldTracks = new Set(stream.getTracks());
+            for (const track of newStream.getTracks()) {
+              if (!oldTracks.has(track))
+                stream.addTrack(track);
+              else
+                oldTracks.delete(track);
+            }
+            for (const track of oldTracks)
+              stream.removeTrack(track);
+          }
           mesh.visible = true;
           options.gestureWrangler.playVideo(actor_element);
-          sound.setMediaStreamSource(stream);
         } else {
+          actor_element.srcObject = null;
           mesh.visible = false;
-          sound.disconnect();
         }
-
-
+        if (actor_element.srcObject && actor_element.srcObject.getAudioTracks().length)
+          sound.setMediaStreamSource(actor_element.srcObject);
+        else if (sound.source)
+          sound.disconnect();
     }
 
     const getStream = () => {
@@ -139,19 +150,14 @@ export const createActor = (object, parameters) => {
     mesh.userData.isActor = true
 
 
-    actor_obj.userData.cloneActor  = () => {
-      return mesh.clone() 
+    
+
+    mesh.name = options.name
+    object.add(mesh)
+    mesh.rotation.setFromQuaternion(options.rotation)
+
+    mesh.scale.copy(options.scale)
+
+    mesh.position.copy(options.position)
+    return [mesh, setStream, getStream]
     }
-
-
-    mesh.name = `${options.name}-mesh`
-    actor_obj.name = options.name
-    actor_obj.add(mesh)
-    object.add(actor_obj)
-    actor_obj.rotation.setFromQuaternion(options.rotation)
-
-    actor_obj.scale.copy(options.scale)
-
-    actor_obj.position.copy(options.position)
-    return [actor_obj, setStream, getStream]
-}

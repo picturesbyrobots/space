@@ -31,9 +31,9 @@ export const init = (scene_root) =>
 
 
                   let [x,y,z] = offset;
-                    let new_dup = actor_mesh.userData.cloneActor()
-                   scene_root.add(new_dup)
-                   duplicates.push(new_dup)
+                  //   let new_dup = actor_mesh.userData.cloneActor()
+                  //  scene_root.add(new_dup)
+                  //  duplicates.push(new_dup)
                   
 
             })
