@@ -43,9 +43,9 @@ export const init = (scene_root) =>
       
       const chair_offsets =
             [
-                  [-0,65, 5],
-                  [10, 70, 10],
-                  [10,50, -5]
+                  [-0,45, 5],
+                  [10, 50, 10],
+                  [10,30, -5]
 
             ]
 
