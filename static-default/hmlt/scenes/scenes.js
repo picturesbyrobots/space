@@ -5,7 +5,7 @@ import * as interior_functions from './interior.js'
 import * as void_functions from './void.js'
 import * as sculpture_functions from './sculpture.js'
 import * as claudius_functions from './claudius.js'
-
+import * as globe_functions from './globe.js'
 
 let module_name = "USES SCRIPTS"
 let script_map;
@@ -43,6 +43,7 @@ export const useSceneScripts = (lvl) => {
     script_map.set("sculpture", {init : sculpture_functions.init, animate: sculpture_functions.animate})
     script_map.set("claudius", {init : claudius_functions.init, animate: claudius_functions.animate})
     script_map.set("interior", {init : interior_functions.init, animate: interior_functions.animate})
+    script_map.set("globe", {init : globe_functions.init, animate: globe_functions.animate})
 
     let get_funcs = (scene_name) => {
 
