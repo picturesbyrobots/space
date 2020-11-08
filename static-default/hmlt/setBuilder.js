@@ -1,6 +1,7 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {GUI} from '/deps/three/examples/jsm/libs/dat.gui.module.js'
 import Service from '/space/js/Service.js'
+import {startService }  from './hmltService.js'
 
 import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
 import { createActor } from './three-utils/actorCast.js'
@@ -20,24 +21,7 @@ let config = ""
 let active_scene = ""; 
 let pc;
 
-/*
-                            let video_data = 
-                            {
-                                id : "test_video",
-                                uri : "https://hamlet-gl-assets.s3.amazonaws.com/misc/video/clouds.mp4"
-                            }
 
-                            let parameters = {
-                                wallColor : 0xf3f3f3
-                            }
-                                makeVideoArtwork(pc,audio_listener,gesture_wrangler,video_data,parameters)
-                                                .then((results) => {
-                                                let [artwork, setVideoSrc] = results
-                                                
-                                                hmlt_root.add(artwork)
-                                                })
-
-*/
 const createActors = (object, actors) => {
             actors.forEach(actor_data => {
                         let {x,y,z} = actor_data.transform.position;
@@ -59,6 +43,7 @@ const createActors = (object, actors) => {
 }
 
 
+
 export var reload = (scene)  => {
     if(config === "")
         return
@@ -76,12 +61,7 @@ export var reload = (scene)  => {
                             
 
                              scene.add(hmlt_root)
-                            //  scene.fog = new THREE.FogExp2(0x2e2e2e, 0.013 );
-                            //  let setFog = useFog(scene)
-                            //  setFog("street")
-                             //scene.fog = new THREE.FogExp2(0xcd9c7c, 0.013 );
-
-                            Service.get('knobs', knobs => { 
+                             Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
 
                                     if(msg === undefined) return
@@ -93,34 +73,20 @@ export var reload = (scene)  => {
 
                                 })
                             })
+
+                             Service.get('hamlet', show => {
+
+                                show.curtainUp({})
+
+                             })
+
+
                     })
         })
 
 }
 
 
-
-
-const useFog = (scene) => {
-    let lookup = 
-    {
-        "interior" : [0xebdb9d, 0.029],
-        "street" : [0x2e2e2e, 0.013]
-    }
-    const setFog = (scene_name) =>  {
-
-        if(Object.keys(lookup).includes(scene_name)) 
-        {
-            return   
-        }
-        let [c,d] = lookup[scene_name];
-        scene.fog.color = c
-        scene.fog.density = d
-    }
-    
-    return setFog
-    
-}
 
 const useKnobs = () => {
        Service.get('knobs', knobs => {
@@ -191,6 +157,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
 
     reload(scene)
     useKnobs()
+    startService()
 
     
     
@@ -271,93 +238,6 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
    
 
    
-
-//    const addPointLight = (hmlt_root) => {
-//         var plight = new THREE.PointLight( 0xff0000, 1, 100, 2 );
-//         if(hmlt_root.getObjectByName("pointlight")) 
-//         {
-
-//             let suf = hmlt_root.children.filter(child => child.name.includes("pointlight")).length
-//             plight.name = `pointlight.00${suf}`
-
-//         }else {
-//             plight.name = "pointlight"
-//         }
-//         hmlt_root.add(plight)
-//         buildGui(hmlt_root)
-//    }
-
-   
-
-//    const addSpotLight = (hmlt_root) => {
-
-//     var slight = new THREE.SpotLight(0xff00ff, 1)
-//     if(hmlt_root.getObjectByName("spotlight")) 
-//         {
-
-//             let suf = hmlt_root.children.filter(child => child.name.includes("spotlight")).length
-//             slight.name = `spotlight.00${suf}`
-
-//         }else {
-//             slight.name = "spotlight"
-//         }
-
-//         let light_target = new THREE.Object3D();
-
-//         light_target.name = `${slight.name} - target`
-//         light_target.userData = 
-//         {
-//             isTarget : true,
-//             targetOf : slight.name
-//         }
-            
-//         slight.target = light_target
-
-//         hmlt_root.add(slight)
-//         hmlt_root.add(light_target)
-        
-//    }
-
-//   const duplicateSelectedObject = (hmlt_root, obj_name) => {
-    
-//     let parent_obj = hmlt_root.getObjectByName(obj_name) 
-//     if(parent_obj) 
-//     {
-//         // check to see if we're cloning a duplicate
-//         if(parent_obj.userData.isClone) 
-//         {
-//             // if we're cloning a duplicate set the parent to the master
-//             parent_obj = hmlt_root.getObjectByName(parent_obj.userData.master)
-//         }
-
-//         // clone the object
-//         let new_object = parent_obj.clone();
-
-//         // we should make a sane name for our new object
-//         let object_name = parent_obj.name
-
-//         // how many objects are duplicates of this object?
-//         let num_dups = hmlt_root.children.filter((child) => {return child.userData.isClone && child.userData.master === parent_obj.name}).length
-
-//         object_name = `${object_name}.00${num_dups + 1}`;
-//         new_object.name = object_name
-
-        
-//         // set userdata to make reduplications easier
-//         new_object.userData = 
-//         {
-//             isClone : true,
-//             master : parent_obj.name
-//         }
-
-//         hmlt_root.add(new_object)
-
-//     }
-
-
-//    } 
-
-
 
 
 

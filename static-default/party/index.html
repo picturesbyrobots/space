@@ -26,7 +26,6 @@ const hqs = location.hash
   .map(c => c.split('=').map(decodeURIComponent))
   .reduce((params, [k, v]) => (params[k] = v, params), {});
 
-  console.log(hqs)
 
 const createSoundPlayer = (ac, destination) => {
   const soundPromises = {};
@@ -481,6 +480,17 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
         removeGuest(id, true);
         updateMedia(id, guest);
       }
+      // edge case. if an actor is already casting when the guest first arrives
+      // we need to create their stream before they can cast
+      else 
+      {
+
+        const actor = getOrCreateGuest(id, remoteGuest)
+        removeGuest(id, true)
+        updateMedia(id, actor)
+        return
+
+      }
       return;
     }
     clearActorRole(id);
@@ -729,6 +739,19 @@ const buildRoom = (el, config) => {
     */
 
   });
+
+  Service.get('hamlet', show => {
+    show.observe('curtainUp', data => {
+
+      Service.get('room', room => {
+      glRoom.clearGuests();
+      for (const k in room.guests)
+        glRoom.updateGuest(k, room.guests[k]);
+
+      })
+
+    })
+  })
 
   return ret;
 }
