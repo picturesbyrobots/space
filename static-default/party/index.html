@@ -482,6 +482,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       }
       // edge case. if an actor is already casting when the guest first arrives
       // we need to create their stream before they can cast
+      // TODO? 
       else 
       {
 
@@ -614,8 +615,11 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     if (ownActorName) {
       const obj = scene.getObjectByName(ownActorName);
       if (obj) {
+
+        let {width} = obj.geometry.parameters
         obj.add(camera);
-        camera.position.set(0, 9, -10);
+
+        camera.position.set(0, 9, -1.25 * width);
         camera.rotation.set(-Math.PI/11, Math.PI, 0);
         camera.fov = 80;
         camera.updateProjectionMatrix();
