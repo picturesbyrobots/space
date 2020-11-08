@@ -46,6 +46,7 @@ export const createActor = (object, parameters) => {
         }
 
 
+    mesh.userData.crop = options.crop
     mesh.name = options.name
     object.add(mesh)
 

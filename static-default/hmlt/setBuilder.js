@@ -23,12 +23,17 @@ let pc;
 
 const createActors = (object, actors) => {
             actors.forEach(actor_data => {
+
                         let {x,y,z} = actor_data.transform.position;
                         let [sx,sy,sz] = actor_data.transform.scale;
                         let [qx,qy,qz,qw] = actor_data.transform.rotation
+
+                        let crop = actor_data.crop ? actor_data.crop : {cropLeft : 0.0, cropRight : 1.0}
+
                         let [actor, setStream, getStream] = createActor(object, {  name : actor_data.name, 
                                                                                       listener : audio_listener, 
                                                                                       position : new THREE.Vector3(x,y,z),
+                                                                                      crop : crop,
                                                                                       scale : new THREE.Vector3(sx,sy,sz),
                                                                                       rotation : new THREE.Quaternion(qx,qy,qz,qw),
                                                                                       gestureWrangler : gesture_wrangler})
