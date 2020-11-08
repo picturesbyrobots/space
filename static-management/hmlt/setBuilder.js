@@ -552,7 +552,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                                                         if(actor_obj.userData.scale)
                                                         {
                                                             let s = actor_obj.userData.scale
-                                                            actors_data.transform.scale = [s,s,s]
+                                                            actor_data.transform.scale = [s,s,s]
                                                         }
 
                                                       return actor_data
@@ -798,7 +798,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
         actor_folder.add(actorController, 'scale', 0.0, 20.0).onChange(
             val => {
                 actorController.scale = val;
-                selected_obj.userData.scale
+                selected_obj.userData.scale = val;
                 sendSizeInfo(
                     {
                      scale : val,
