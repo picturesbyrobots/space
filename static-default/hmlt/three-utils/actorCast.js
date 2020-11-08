@@ -9,6 +9,7 @@ let defaults = {
     rotation : new THREE.Quaternion(0,0,0,1),
     scale : new THREE.Vector3(1,1,1),
     stream : null
+    
 }
 let module_name = "aCTOR"
 
@@ -119,13 +120,14 @@ export const createActor = (object, parameters) => {
         mesh.material.uniforms.cropLeft.value = cropData.cropLeft;
 
       if(cropData.cropRight) 
-        mesh.material.uniforms.cropRight.value = cropData. cropRight;
+        mesh.material.uniforms.cropRight.value = cropData.cropRight;
 
 
     }
     mesh.material.uniforms.map.value = videoTexture;
     mesh.material.uniforms.slop.value = 0.05;
     mesh.material.uniforms.edgeCorrection.value = 0.2;
+    updateCrop(options.crop)
     
 
 

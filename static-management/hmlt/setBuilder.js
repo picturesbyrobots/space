@@ -109,9 +109,11 @@ export var reload = (scene)  => {
                                                 let {x,y,z} = actor.transform.position;
                                                 let [sx,sy,sz] = actor.transform.scale;
                                                 let [qx,qy,qz,qw] =actor.transform.rotation
+                                                let crop = actor_data.crop ? actor_data.crop : {cropLeft : 1.0, cropRight : 1.0}
                                                 
                                                 createActor(obj, { name : actor.name,
                                                                     position : new THREE.Vector3(x,y,z),
+                                                                    crop : crop,
                                                                     scale : new THREE.Vector3(sx,sy,sz),
                                                                     rotation : new THREE.Quaternion(qx,qy,qz,qw)
                                                                  })
@@ -536,14 +538,15 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                                                   .map(actor_obj => {
                                                       let actor_data = {}
                                                       actor_data.name = actor_obj.name;
+                                                      actor_data.crop = {}
                                                       actor_data = exportTransform(actor_data, actor_obj)
                                                         if(actor_obj.userData.cropLeft) 
                                                         {
-                                                            actor_data.cropLeft = actor_obj.userData.cropLeft
+                                                            actor_data.crop.cropLeft= actor_obj.userData.cropLeft
                                                         }
                                                         if(actor_obj.userData.cropRight) 
                                                         {
-                                                            actor_data.cropRight = actor_obj.userData.cropRight
+                                                            actor_data.crop.cropRight = actor_obj.userData.cropRight
                                                         }
                                                       return actor_data
                                                   })
