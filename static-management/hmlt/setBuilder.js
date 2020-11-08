@@ -25,7 +25,7 @@ export var init = ( kconn, config_uri, k_socket) => {
 
 
     scene_position = new THREE.Vector3(0,0,0)
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 400);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 3000);
 
 
     camera.position.set( 0,40, 100 );
@@ -537,6 +537,14 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                                                       let actor_data = {}
                                                       actor_data.name = actor_obj.name;
                                                       actor_data = exportTransform(actor_data, actor_obj)
+                                                        if(actor_obj.userData.cropLeft) 
+                                                        {
+                                                            actor_data.cropLeft = actor_obj.userData.cropLeft
+                                                        }
+                                                        if(actor_obj.userData.cropRight) 
+                                                        {
+                                                            actor_data.cropRight = actor_obj.userData.cropRight
+                                                        }
                                                       return actor_data
                                                   })
         
@@ -716,36 +724,76 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
 
    const buildActorGui = (hmlt_root) => {
 
-        let selected_actor_name = "hmlt"
+        let selected_obj = hmlt_root.getObjectByName(active_scene).getObjectByName(active_model_name);
+
+        if(selected_obj === undefined) return
+        if(!selected_obj.userData.isActor) return
+
+
+        
         if(Object.keys(actor_panel.__folders).includes('Create Actor')) {
 +
 +             actor_panel.removeFolder(actor_panel.__folders['Create Actor'])
         }
 
-        let actor_create_folder = actor_panel.addFolder('Create Actor')
-        let actorController = {
-            name :selected_actor_name ,
-            add : () => {
-
-                console.log(`adding an actor named : ${selected_actor_name}`)
-                createActor(hmlt_root, {name : selected_actor_name})
-                conn && conn.send('setKnob', {name : "hmlt_build", value : {
-                                              cmd : "add-actor",
-                                              data : {name : selected_actor_name}}}
-                )
-                buildGui(hmlt_root)
-            }
+        const sendCropInfo = (val) => {
+            conn && conn.send('setKnob', {name : "hmlt_run", value : {
+            cmd : "cropActor",
+            data : val}
+        })
         }
 
-        actor_create_folder.add(actorController, 'name').onChange(
-            (val) => {
-                selected_actor_name = val
+        const sendSizeInfo = (val) => {
+           conn && conn.send('setKnob', {name : "hmlt_run", value : {
+                cmd : "scaleActor",
+                data : val}
+            })
+
+        }
+        let actor_folder = actor_panel.addFolder('Create Actor')
+        let actorController = {
+            name : selected_obj.name,
+            cropLeft : 0.0,
+            cropRight : 1.0,
+            scale : 1.0
+        }
+
+        actor_folder.add(actorController, 'name')
+        actor_folder.add(actorController, 'cropLeft', 0, 1.0).onChange(
+            val => {
+                actorController.cropLeft = val;
+
+                selected_obj.userData.cropLeft = val
+                sendCropInfo(
+                {
+                 "cropLeft" : val,
+                 "cropRight" : actorController.cropRight,
+                 "name" : selected_obj.name
+                 })
             }
         )
 
-        actor_create_folder.add(actorController, 'add')
+       actor_folder.add(actorController, 'cropRight', 0, 1.0).onChange(
+            val => {
+                actorController.cropRight= val;
+                selected_obj.userData.cropRight = val
+                sendCropInfo( 
+                {"cropRight" : val,
+                 "cropLeft" : actorController.cropLeft,
+                 "name" : selected_obj.name
+                 })
+            }
+        ) 
 
-        actor_create_folder.open()
+        actor_folder.add(actorController, 'scale', 0.0, 2.0).onChange(
+            val => {
+                actorController.scale = val;
+                sendSizeInfo(val)
+            }
+        )
+
+
+        actor_folder.open()
 
        
 
@@ -782,6 +830,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                             transform_controls.detach()
                         }
                         transform_controls.attach(obj)
+                        buildActorGui(hmlt_root)
                     }
                         
                 }
