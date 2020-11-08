@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<script type=module>
+
+import Observers from '../js/Observers.js';
+import Service from '../js/Service.js';
+
+class HamletService {
+  constructor() {
+    this.observers = new Observers();
+  }
+
+  
+
+}
+
+const hamletService = new HamletService();
+
+class HamletClient {
+  constructor(context) {
+    this.context = context;
+  }
+
+  observe(key, cb) {
+    return hamletService.observers.add(key, this.context, cb);
+  }
+
+  curtainUp(data) {
+      hamletService.observers.fire('curtainUp',data)
+  }
+  
+}
+
+const perfServiceCB = context => new HamletClient(context);
+ Service.register('hamlet', perfServiceCB);
+
+
+
+
+</script>

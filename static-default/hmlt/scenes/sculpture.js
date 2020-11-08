@@ -54,7 +54,6 @@ export const init = (scene_root) =>
 
        
       let sculpture = scene_root.getObjectByName("fallingman");
-      console.log(sculpture)
       sculpture.userData = 
             {
                   animate: true,
