@@ -548,6 +548,13 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                                                         {
                                                             actor_data.crop.cropRight = actor_obj.userData.cropRight
                                                         }
+                                                        // camera hack
+                                                        if(actor_obj.userData.scale)
+                                                        {
+                                                            let s = actor_obj.userData.scale
+                                                            actors_data.transform.scale = [s,s,s]
+                                                        }
+
                                                       return actor_data
                                                   })
         
@@ -791,7 +798,12 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
         actor_folder.add(actorController, 'scale', 0.0, 2.0).onChange(
             val => {
                 actorController.scale = val;
-                sendSizeInfo(val)
+                selected_obj.userData.scale
+                sendSizeInfo(
+                    {
+                     scale : val,
+                     name : selected_obj.name
+                    })
             }
         )
 

@@ -109,10 +109,20 @@ export const createActor = (object, parameters) => {
     //     }))
 
 
+    let scale  = options.scale.x
+    const width = options.width * scale
+    const height = options.height * scale
     const mesh = new THREE.Mesh(
-         new THREE.PlaneBufferGeometry(options.width, options.height),
+         new THREE.PlaneBufferGeometry(width, height),
          chromaMat
     )
+
+    const updateScale = (data) => {
+      const width = options.width * data.scale
+      const height = options.height * data.scale
+      mesh.geometry.copy(new THREE.PlaneBufferGeometry(width, height))
+
+    }
 
     const updateCrop = (cropData) => {
 
@@ -176,7 +186,6 @@ export const createActor = (object, parameters) => {
     object.add(mesh)
     mesh.rotation.setFromQuaternion(options.rotation)
 
-    mesh.scale.copy(options.scale)
 
     mesh.position.copy(options.position)
 
@@ -192,6 +201,13 @@ export const createActor = (object, parameters) => {
               updateCrop(msg.data)
           }
 
+        }
+        if(msg.cmd === "scaleActor")
+        {
+          if(mesh.name === msg.data.name)
+            {
+                updateScale(msg.data)
+            }
         }
 
       })
