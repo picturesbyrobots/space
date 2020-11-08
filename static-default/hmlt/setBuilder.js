@@ -1,5 +1,4 @@
 import * as THREE from '/deps/three/build/three.module.js'
-import {GUI} from '/deps/three/examples/jsm/libs/dat.gui.module.js'
 import Service from '/space/js/Service.js'
 
 import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
@@ -8,7 +7,7 @@ import { createActor } from './three-utils/actorCast.js'
 import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
 import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
-var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, gesture_wrangler, audio_listener
+var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, gesture_wrangler, audio_listener
 
 let setStreamFunctions, id_lookup;
 
@@ -142,9 +141,6 @@ const useKnobs = () => {
 
     
 export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_config) => {
-    lighting_panel = new GUI({width: 300})
-
-
     config = config_uri
     gesture_wrangler = gw,
     audio_listener = al
