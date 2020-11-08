@@ -1,7 +1,6 @@
 import * as THREE from '/deps/three/build/three.module.js'
 import {GUI} from '/deps/three/examples/jsm/libs/dat.gui.module.js'
 import Service from '/space/js/Service.js'
-import {startService }  from './hmltService.js'
 
 import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
 import { createActor } from './three-utils/actorCast.js'
@@ -157,7 +156,6 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
 
     reload(scene)
     useKnobs()
-    startService()
 
     
     
