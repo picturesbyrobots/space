@@ -173,7 +173,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
 
   // Work around for missing echo cancellation on many kinds of audio:
   // https://crbug.com/687574
-  if (navigator.userAgent.indexOf('Chrome') != -1) {
+  if (navigator.userAgent.indexOf('Chrome') != -1 || navigator.userAgent.indexOf('Firefox') != -1) {
     const loopbackDestination = listener.context.createMediaStreamDestination();
     const loopbackEl = document.createElement('audio');
     const loopback = new RTCLoopback(stream => {
