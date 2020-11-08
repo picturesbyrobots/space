@@ -9,6 +9,7 @@ import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, gesture_wrangler, audio_listener
 
+let knownStreams = {};
 let setStreamFunctions, id_lookup;
 
 let active_model_name = ""
@@ -196,8 +197,11 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                     {
                         return
                     }
-                    setStreamFunctions.set(actor_name, {...setStreamFunctions.get(actor_name), id : id })
+                    const funcs = {...setStreamFunctions.get(actor_name), id : id };
+                    setStreamFunctions.set(actor_name, funcs)
                     id_lookup.set(id, actor_name)
+                    if (knownStreams[id])
+                      funcs.setStream(knownStreams[id])
                 }
                 const clearActorRole = (id) => {
                     if(!id_lookup.has(id)) {
@@ -208,6 +212,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                 }
 
                 const updateMediaStream = (id,t) => {
+                    knownStreams[id] = t;
 
                     if(!id_lookup.has(id)) {
                         return

@@ -513,11 +513,8 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
   }
 
   const updateMedia = (id, { videoTrack, audioTrack }) => {
-    if(hasActorWithId(id)) 
-    {
-      updateMediaStream(id, new MediaStream([videoTrack, audioTrack].filter(t => t)));
+    updateMediaStream(id, new MediaStream([videoTrack, audioTrack].filter(t => t)));
 
-    }
     if (id == projectorId) {
       projector.setStream(new MediaStream([videoTrack, audioTrack].filter(t => t)));
       return;
