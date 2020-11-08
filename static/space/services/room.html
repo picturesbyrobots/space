@@ -77,9 +77,7 @@ class Player {
 
 class Room {
   constructor() {
-    this.ac = new (window.AudioContext || window.webkitAudioContext)({
-      sampleRate: 48000
-    });
+    this.ac = new (window.AudioContext || window.webkitAudioContext)();
     this.observers = new Observers();
     this.mediaStream = new MediaStream();
     this.guests = {};
