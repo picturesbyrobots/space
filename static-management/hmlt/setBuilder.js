@@ -795,7 +795,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
             }
         ) 
 
-        actor_folder.add(actorController, 'scale', 0.0, 2.0).onChange(
+        actor_folder.add(actorController, 'scale', 0.0, 20.0).onChange(
             val => {
                 actorController.scale = val;
                 selected_obj.userData.scale
