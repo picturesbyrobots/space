@@ -77,21 +77,17 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
     
 
     // video element. set the cross origin in case we want to load from different sources
-    const videoEl = document.createElement('video')
-    videoEl.playsInline = true;
-    videoEl.crossOrigin = "anonymous";
+    let video_el_id = "videoPLayerElement"
 
-    videoEl.loop = false;
+    const makeVideoEl = (uri) => {
 
-
-      const resizeScreen = () => {
-        screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
-
-      }
-
-
-
-      // play the video, resize, and add positional audio once we get meta.
+      const videoEl = document.createElement('video')
+      videoEl.playsInline = true;
+      videoEl.crossOrigin = "anonymous";
+      videoEl.id = video_el_id
+      videoEl.loop = false;
+      videoEl.src = uri
+      videoEl.load()
 
       videoEl.addEventListener('loadedmetadata', e => {
 
@@ -104,8 +100,53 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
         {
           screen.material.visible = false
         }
+        videoEl.remove()
 
       })
+      videoEl.addEventListener('playing', e => {
+        if(!textureCreated) {
+
+            
+            const videoTexture = new THREE.VideoTexture(videoEl);
+            videoTexture.minFilter = THREE.LinearFilter;
+            videoTexture.magFilter = THREE.LinearFilter;
+            videoTexture.format = THREE.RGBFormat;
+
+            console.log(videoTexture)
+            screen.material = withMat(options.material_type , {
+                                                                map : videoTexture,
+                                                                transparent : true,
+                                                                opacity : 1,
+                                                                side : THREE.DoubleSide
+            })
+
+            resizeScreen(videoEl);
+
+            screen.material.visible = true
+            textureCreated = true;
+            console.log("playing")
+        }
+
+
+
+      const wantTime = (+new Date() - config.zeroTime) / 1000 % videoEl.duration;
+      if (Math.abs(wantTime - videoEl.currentTime) > 0.5)
+        videoEl.currentTime = wantTime;
+      });
+      return videoEl
+
+    }
+    
+      const resizeScreen = (videoEl) => {
+        screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
+
+      }
+
+
+
+      // play the video, resize, and add positional audio once we get meta.
+
+
 
         // const posSound = new THREE.PositionalAudio(listener);
         // posSound.panner.panningModel = 'equalpower';
@@ -122,35 +163,7 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
       // I also create the video material  to avoid scenarios where the texture is created before the video element loads.
       // which sometimes leads to difficult to debug conditions.
       
-      videoEl.addEventListener('playing', e => {
-        if(!textureCreated) {
-
-            const videoTexture = new THREE.VideoTexture(videoEl);
-            videoTexture.minFilter = THREE.LinearFilter;
-            videoTexture.magFilter = THREE.LinearFilter;
-            videoTexture.format = THREE.RGBFormat;
-
-            console.log(videoTexture)
-            screen.material = withMat(options.material_type , {
-                                                                map : videoTexture,
-                                                                transparent : true,
-                                                                opacity : 1,
-                                                                side : THREE.DoubleSide
-            })
-
-            resizeScreen();
-
-            screen.material.visible = true
-            textureCreated = true;
-            console.log("playing")
-        }
-
-
-
-      const wantTime = (+new Date() - config.zeroTime) / 1000 % videoEl.duration;
-      if (Math.abs(wantTime - videoEl.currentTime) > 0.5)
-        videoEl.currentTime = wantTime;
-      });
+      
 
     // put it all together
     const group = new THREE.Group();
@@ -199,9 +212,9 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
 
     // helper function to set a new source
     let setVideoSrc = (new_src) => {
-        videoEl.src = new_src
-        videoEl.load()
-    }
+        textureCreated = false
+        makeVideoEl(new_src)
+     }
     
 
 

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<link rel=stylesheet href=/style.css>
+<ul id="sceneCues"></ul>
+<template id=sceneTemplate>
+  <li>
+    <h1 class=title>title</h1>
+    <!--<div class=time>00:00:00</div>-->
+    <div class=buttons>
+      <button class= sceneButton>Start</button>
+    </div>
+  </li>
+</template>
+<script>
+
+const soundPlaybackState = {};
+
+let conn;
+const connectWs = () => {
+  const ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
+
+  ws.onclose = e => {
+    setTimeout(connectWs, 1000);
+  };
+  ws.onmessage = e => {
+    const message = JSON.parse(e.data);
+    const {type, body} = message;
+    switch (type) {
+      default:
+        console.log('message', type, body);
+    }
+  };
+  ws.onopen = e => {
+  };
+
+  conn = {
+    send(type, body) {
+      ws.send(JSON.stringify({ type, body }));
+    }
+  };
+};
+
+connectWs();
+
+class SceneController{
+  constructor(scene) {
+    this.scene = scene;
+    this.el = sceneTemplate.content.firstElementChild.cloneNode(true);
+
+    this.sceneButton = this.el.querySelector('.sceneButton');
+    this.el.querySelector('.title').textContent = scene;
+
+    this.sceneButton.addEventListener('mousedown', e => {
+
+      conn && conn.send('setKnob', {name: "hmlt_scene", value : scene})
+
+      // this.setNeedsDisplay();
+    });
+
+  }
+  // setNeedsDisplay() {
+  //   if (this.needsDisplay)
+  //     return;
+  //   this.needsDisplay = true;
+  //   requestAnimationFrame(() => this.display());
+  // }
+  // display() {
+  //   if (this.playTime)
+  //     this.setNeedsDisplay();
+  // }
+  send() {
+    conn.sendScene(this.scene);
+  }
+}
+
+const scenes = [
+  'street',
+  'void'
+];
+
+const sceneControllers = scenes.map(scene=> new SceneController(scene));
+
+for (const sceneController of sceneControllers)
+  sceneCues.appendChild(sceneController.el);
+
+</script>

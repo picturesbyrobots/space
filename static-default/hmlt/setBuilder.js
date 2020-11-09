@@ -68,6 +68,7 @@ export var reload = (scene)  => {
                              Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
 
+                                    // msgs from builder
                                     if(msg === undefined) return
                                     if(msg.cmd === "setScene") 
                                     {
@@ -75,6 +76,9 @@ export var reload = (scene)  => {
                                         //setFog(msg.data)
                                     }
 
+                                })
+                                knobs.observe('hmlt_scene', msg => {
+                                    setScene(msg)
                                 })
                             })
 
@@ -144,8 +148,8 @@ const useVideo = (config_uri) => {
         .then(
         response => response.json())
         .then(data =>  { 
+            console.log(data)
             
-            let test_path = `${data.folder}/${data.videos[0].name}`
             let [player, setVideo] = makeVideoPlayer(
                                              pc,
                                             audio_listener,
@@ -154,6 +158,15 @@ const useVideo = (config_uri) => {
                                             )
                                             
             player.userData.alwaysRender = true
+            Service.get('knobs', knobs => { 
+                knobs.observe('hmlt_scene', msg => {
+                                    if(!Object.keys(data.videos).includes(msg)){
+                                        return
+                                    }
+                                    let uri = `${data.folder}/${data.videos[msg].name}`
+                                    setVideo(uri)
+                                })
+                        })
             hmlt_root.add(player)
         }
         )

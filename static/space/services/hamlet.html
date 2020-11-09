@@ -9,11 +9,21 @@ class HamletService {
     this.observers = new Observers();
   }
 
- 
+  setWs(ws) {
+    this.ws = ws;
+    console.log('setWS')
+    ws.observe('hmlt_chat', message => {
+      console.log(message)
+      this.observers.fire('hmlt_message', message)
+    })
 
+  }
 }
 
+
+
 const hamletService = new HamletService();
+Service.get('ws', ws => hamletService.setWs(ws));
 
 class HamletClient {
   constructor(context) {
@@ -28,9 +38,10 @@ class HamletClient {
       hamletService.observers.fire('curtainUp',data)
   }
   
+  
 }
 
-const perfServiceCB = context => new HamletClient(context);
+ const perfServiceCB = context => new HamletClient(context);
  Service.register('hamlet', perfServiceCB);
 
 
