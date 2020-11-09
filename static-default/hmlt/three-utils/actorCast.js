@@ -143,6 +143,7 @@ export const createActor = (object, parameters) => {
 
     let sound =  new THREE.Audio(options.listener)
 
+
     mesh.add(sound);
 
 
@@ -178,6 +179,14 @@ export const createActor = (object, parameters) => {
         return options.stream
     }
     mesh.userData.isActor = true
+
+    mesh.userData.muteSound = () => {
+      sound.setVolume(0.0);
+    }
+    mesh.userData.unmuteSound = () => {
+      sound.setVolume(1.0);
+
+    }
 
 
     
