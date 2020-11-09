@@ -55,6 +55,8 @@ const createSoundPlayer = (ac, destination) => {
         };
         sound.gain.connect(destination);
         getSound(k).then(buf => {
+          if (sound != playingSounds[k])
+            return;
           const source = ac.createBufferSource();
           source.buffer = buf;
           source.loop = true;
