@@ -224,7 +224,7 @@ Service.get('userMedia', userMedia => {
         deviceId: { exact: defaultVideoDevice },
       } : userMedia.defaultConstraints.video,
       audio: acting ? {
-        noiseSuppression: false,
+        noiseSuppression: !actorRawMic,
         echoCancellation: !actorRawMic,
         deviceId: { exact: defaultAudioDevice },
       } : userMedia.defaultConstraints.audio,
