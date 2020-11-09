@@ -10,9 +10,15 @@ const radius = 200;
 let gravity = .04;
 
 let particleSystem, uniforms, geometry;
+let particles_created = false
 
 
 export const init = (scene_root) => {
+
+  if(particles_created){
+    return
+  }
+
 
     rainGeo = new THREE.BufferGeometry()
     const positions = [];
@@ -177,6 +183,7 @@ const shaderMaterial = new THREE.ShaderMaterial( {
 
       
 
+    particles_created = true
     return 1
 
 }
