@@ -950,11 +950,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
                     if(obj)
                     {
                             let [getScene, setScene] = useActiveScene()
-                            conn && conn.send('setKnob', {name : "hmlt_run", value : {
-                                cmd : "setScene",
-                                data : name
-                                }
-                            })
+                            
                             setScene(name)
                             guis()
                     }
