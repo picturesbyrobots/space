@@ -167,6 +167,9 @@ const positionOfSeatWithFlags = (n, seats, rows, radius, distance, stadium) => {
   const angle = distance * Math.PI / seatRadius / 2.;
   const angleOfs = Math.PI / 2 - angle * (rowSeats + (row%2)-1) / 2;
 
+  // Seats start in the middle of each row and work their way outward.
+  seat = Math.floor(rowSeats/2) + Math.ceil(seat / 2) * (seat % 2 ? 1 : -1);
+
   const seatAngle = seat*angle + angleOfs + (row % 2) * angle / 2 - angle / 2;
   return [
     Math.cos(seatAngle) * seatRadius,
