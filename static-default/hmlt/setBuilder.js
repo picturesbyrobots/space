@@ -4,7 +4,7 @@ import Service from '/space/js/Service.js'
 import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
 import { createActor } from './three-utils/actorCast.js'
 
-import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
+import {makeVideoPlayer} from '/hmlt/video/makeVideoPlayer.js'
 import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, gesture_wrangler, audio_listener
@@ -139,6 +139,19 @@ const useKnobs = () => {
             
 
 
+const useVideo = (config_uri) => {
+    fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config_uri}`)
+        .then(
+        response => response.json())
+        .then(data =>  { 
+            let [player, setVideo] = makeVideoPlayer(pc,
+                                            audio_listener,
+                                            gesture_wrangler,
+                                            {uri : data[0].uri})
+            hmlt_root.add(player)
+        }
+        )
+}
 
     
 export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_config) => {
@@ -158,6 +171,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
 
     reload(scene)
     useKnobs()
+    useVideo("video_config.js")
 
     
     

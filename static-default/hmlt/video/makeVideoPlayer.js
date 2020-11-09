@@ -14,14 +14,9 @@ args
     listener - audio listener for a space
     gestureWrangler - gestureWrangler for a space
     video_data - javascript object containing two fields 
-                 id - a unique id for this video object
                  uri - where this object can be found in the browser
     parameters - javascript object with three.js parameters
                     screenWidth : width of the screen of the video
-                    wallWidth : width of the "wall" the video will be hung on
-                    wallHeight : height of the "wall" the video will be hung on
-                    screenZOffset : how far off the wall
-                    wallColor : color to set the wall
                     material_type : 'PHONG' for lighting response materials. 'BASIC' for non lighting response
 
 
@@ -46,10 +41,6 @@ export const MAT_TYPE = {
 let defaults = {
 
     screenWidth : 40,
-    wallWidth : 60,
-    wallHeight : 40,
-    screenZOffset : 2.55,
-    wallColor : 0xffffff,
     material_type : MAT_TYPE.BASIC
 
 
@@ -70,12 +61,10 @@ const withMat = (type, mat_options) => {
 
 }
 
-export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, parameters) => {
+export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, parameters) => {
 
- return new Promise(resolve => {
 
     let options = {...defaults, ...parameters}
-    console.log(config)
     let textureCreated = false;
 
  // create the screen that will hold the video
@@ -89,15 +78,13 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
     videoEl.playsInline = true;
     videoEl.crossOrigin = "anonymous";
 
-    videoEl.loop = true;
+    videoEl.loop = false;
     videoEl.src = video_data.uri;
-    videoEl.id =  `video_data.id-src`
     videoEl.load();
 
 
       const resizeScreen = () => {
         screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
-        screen.position.y = options.wallHeight / 2;
         screen.visible =  true
 
       }
@@ -110,6 +97,15 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
 
         gestureWrangler.playVideo(videoEl);
       });
+
+      videoEl.addEventListener('ended', e => {
+
+        if(textureCreated) 
+        {
+          screen.material.visible = false
+        }
+
+      })
 
         const posSound = new THREE.PositionalAudio(listener);
         posSound.panner.panningModel = 'equalpower';
@@ -143,6 +139,7 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
 
             resizeScreen();
 
+            screen.material.visible = true
             textureCreated = true;
         }
 
@@ -153,22 +150,10 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
         videoEl.currentTime = wantTime;
       });
 
-
-    // create the wall that the video will hang on
-    const wall = new THREE.Mesh(
-          new THREE.BoxBufferGeometry(options.wallWidth,options.wallHeight, 1),
-          new THREE.MeshPhongMaterial({ color: options.wallColor})
-    );
-    
-    // move the wall up by half it's height
-    wall.position.y += options.wallHeight / 2
-
     // put it all together
     const group = new THREE.Group();
     group.add(screen);
-    group.add(wall)
-    group.name = video_data.id
-    screen.position.z += options.screenZOffset
+    group.name = "videoPlayer"
 
     // helper function to set a new source
     let setVideoSrc = (new_src) => {
@@ -178,8 +163,7 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
     
 
 
-    resolve([group, setVideoSrc])
+    return [group, setVideoSrc]
       
-    })
 
 }
