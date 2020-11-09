@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<link rel=stylesheet href=/style.css>
+<ul id="soundCues"></ul>
+<template id=soundCueTemplate>
+  <li>
+    <h1 class=title>title</h1>
+    <!--<div class=time>00:00:00</div>-->
+    <div class=buttons>
+      <button class=startButton>Start</button>
+      <button class=stopButton disabled>Stop</button>
+    </div>
+    <input type=range value=1 min=0 max=1.5 step=0.01 class=volume list=volumeDetents></input>
+  </li>
+</template>
+<datalist id=volumeDetents>
+  <option value=1>
+</datalist>
+<script>
+
+const soundPlaybackState = {};
+
+const connectWs = () => {
+  const ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
+
+  ws.onclose = e => {
+    setTimeout(connectWs, 1000);
+  };
+  ws.onmessage = e => {
+    const message = JSON.parse(e.data);
+    const {type, body} = message;
+    switch (type) {
+      default:
+        console.log('message', type, body);
+    }
+  };
+  ws.onopen = e => {
+    conn.sendSound();
+  };
+
+  conn = {
+    send(type, body) {
+      ws.send(JSON.stringify({ type, body }));
+    },
+    sendSound() {
+      this.send('setKnob', {name : "hmlt_sound", value : soundPlaybackState });
+    },
+  };
+};
+
+connectWs();
+
+class SoundController {
+  constructor(url) {
+    this.url = url;
+    this.el = soundCueTemplate.content.firstElementChild.cloneNode(true);
+    this.playTime = null;
+    this.volume = 1;
+
+    this.startButton = this.el.querySelector('.startButton');
+    this.stopButton = this.el.querySelector('.stopButton');
+
+    const urlParts = url.split('/');
+    const title = urlParts[urlParts.length-1];
+    this.el.querySelector('.title').textContent = title;
+
+    this.startButton.addEventListener('mousedown', e => {
+      e.preventDefault();
+      this.playTime = Date.now();
+      this.stopButton.disabled = false;
+      this.send();
+      // this.setNeedsDisplay();
+    });
+
+    this.stopButton.addEventListener('mousedown', e => {
+      e.preventDefault();
+      this.playTime = null;
+      this.stopButton.disabled = true;
+      this.send();
+      // this.setNeedsDisplay();
+    });
+
+    this.el.querySelector('.volume').addEventListener('input', e => {
+      this.volume = e.target.valueAsNumber;
+      this.send();
+    });
+  }
+  // setNeedsDisplay() {
+  //   if (this.needsDisplay)
+  //     return;
+  //   this.needsDisplay = true;
+  //   requestAnimationFrame(() => this.display());
+  // }
+  // display() {
+  //   if (this.playTime)
+  //     this.setNeedsDisplay();
+  // }
+  send() {
+    if (this.playTime) {
+      soundPlaybackState[this.url] = {
+        playTime: this.playTime,
+        volume: this.volume,
+      };
+    } else {
+      delete soundPlaybackState[this.url];
+    }
+    conn.sendSound();
+  }
+}
+
+const sounds = [
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/scene1-sample.mp3',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_bassy_demo_1.m4a',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_open_voices_demo_10.m4a',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_water_drip_beat_demo_.m4a',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_demo_way_down_1.m4a',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_synth_demo_.m4a',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_waves_demo_.m4a',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_drips_mp3.mp3',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_waves_mp3.mp3',
+  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_bass_mp3.mp3',
+
+];
+
+const soundControllers = sounds.map(sound => new SoundController(sound));
+
+for (const soundController of soundControllers)
+  soundCues.appendChild(soundController.el);
+
+</script>

@@ -1,5 +1,5 @@
 import * as THREE from '/deps/three/build/three.module.js'
-
+import Service from '/space/js/Service.js';
 /*  
 =========
 makeVideoArtwork.js
@@ -14,14 +14,9 @@ args
     listener - audio listener for a space
     gestureWrangler - gestureWrangler for a space
     video_data - javascript object containing two fields 
-                 id - a unique id for this video object
                  uri - where this object can be found in the browser
     parameters - javascript object with three.js parameters
                     screenWidth : width of the screen of the video
-                    wallWidth : width of the "wall" the video will be hung on
-                    wallHeight : height of the "wall" the video will be hung on
-                    screenZOffset : how far off the wall
-                    wallColor : color to set the wall
                     material_type : 'PHONG' for lighting response materials. 'BASIC' for non lighting response
 
 
@@ -46,10 +41,6 @@ export const MAT_TYPE = {
 let defaults = {
 
     screenWidth : 40,
-    wallWidth : 60,
-    wallHeight : 40,
-    screenZOffset : 2.55,
-    wallColor : 0xffffff,
     material_type : MAT_TYPE.BASIC
 
 
@@ -70,70 +61,58 @@ const withMat = (type, mat_options) => {
 
 }
 
-export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, parameters) => {
+export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, parameters) => {
 
- return new Promise(resolve => {
+
 
     let options = {...defaults, ...parameters}
-    console.log(config)
     let textureCreated = false;
 
  // create the screen that will hold the video
     const screen = new THREE.Mesh(
         new THREE.PlaneBufferGeometry(10, 10),
-        new THREE.MeshPhongMaterial()
+        new THREE.MeshPhongMaterial({visible: false})
       );
 
+    
+
     // video element. set the cross origin in case we want to load from different sources
-    const videoEl = document.createElement('video')
-    videoEl.playsInline = true;
-    videoEl.crossOrigin = "anonymous";
+    let video_el_id = "videoPLayerElement"
 
-    videoEl.loop = true;
-    videoEl.src = video_data.uri;
-    videoEl.id =  `video_data.id-src`
-    videoEl.load();
+    const makeVideoEl = (uri) => {
 
-
-      const resizeScreen = () => {
-        screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
-        screen.position.y = options.wallHeight / 2;
-        screen.visible =  true
-
-      }
-
-
-
-      // play the video, resize, and add positional audio once we get meta.
+      const videoEl = document.createElement('video')
+      videoEl.playsInline = true;
+      videoEl.crossOrigin = "anonymous";
+      videoEl.id = video_el_id
+      videoEl.loop = false;
+      videoEl.src = uri
+      videoEl.load()
 
       videoEl.addEventListener('loadedmetadata', e => {
 
         gestureWrangler.playVideo(videoEl);
       });
 
-        const posSound = new THREE.PositionalAudio(listener);
-        posSound.panner.panningModel = 'equalpower';
-    
-        posSound.setRefDistance(50);
-        posSound.setRolloffFactor(4);
-        posSound.setDistanceModel('exponential');
-        posSound.setDirectionalCone(120, 230, 0.1);
-        posSound.rotation.y = Math.PI;
+      videoEl.addEventListener('ended', e => {
 
-        screen.add(posSound)
+        if(textureCreated) 
+        {
+          screen.material.visible = false
+        }
+        videoEl.remove()
 
-      // syncing taken from buildSummerHouse in main party space
-      // I also create the video material  to avoid scenarios where the texture is created before the video element loads.
-      // which sometimes leads to difficult to debug conditions.
-      
+      })
       videoEl.addEventListener('playing', e => {
         if(!textureCreated) {
 
+            
             const videoTexture = new THREE.VideoTexture(videoEl);
             videoTexture.minFilter = THREE.LinearFilter;
             videoTexture.magFilter = THREE.LinearFilter;
             videoTexture.format = THREE.RGBFormat;
 
+            console.log(videoTexture)
             screen.material = withMat(options.material_type , {
                                                                 map : videoTexture,
                                                                 transparent : true,
@@ -141,9 +120,11 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
                                                                 side : THREE.DoubleSide
             })
 
-            resizeScreen();
+            resizeScreen(videoEl);
 
+            screen.material.visible = true
             textureCreated = true;
+            console.log("playing")
         }
 
 
@@ -152,34 +133,92 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
       if (Math.abs(wantTime - videoEl.currentTime) > 0.5)
         videoEl.currentTime = wantTime;
       });
+      return videoEl
 
-
-    // create the wall that the video will hang on
-    const wall = new THREE.Mesh(
-          new THREE.BoxBufferGeometry(options.wallWidth,options.wallHeight, 1),
-          new THREE.MeshPhongMaterial({ color: options.wallColor})
-    );
+    }
     
-    // move the wall up by half it's height
-    wall.position.y += options.wallHeight / 2
+      const resizeScreen = (videoEl) => {
+        screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
+
+      }
+
+
+
+      // play the video, resize, and add positional audio once we get meta.
+
+
+
+        // const posSound = new THREE.PositionalAudio(listener);
+        // posSound.panner.panningModel = 'equalpower';
+    
+        // posSound.setRefDistance(50);
+        // posSound.setRolloffFactor(4);
+        // posSound.setDistanceModel('exponential');
+        // posSound.setDirectionalCone(120, 230, 0.1);
+        // posSound.rotation.y = Math.PI;
+
+        // screen.add(posSound)
+
+      // syncing taken from buildSummerHouse in main party space
+      // I also create the video material  to avoid scenarios where the texture is created before the video element loads.
+      // which sometimes leads to difficult to debug conditions.
+      
+      
 
     // put it all together
     const group = new THREE.Group();
     group.add(screen);
-    group.add(wall)
-    group.name = video_data.id
-    screen.position.z += options.screenZOffset
+    group.name = "videoPlayer"
+    
+    const player_pos = new THREE.Vector3(0.0, 0.0, 0.0)
+
+
+    // TODO: add tanget functions
+    const offset = new THREE.Vector3(0.0, 10, -19.0)
+
+
+
+    Service.get('room', room => {
+
+        const setPos = () => {
+          let [x,y,z] = room.player.position
+
+            // z is up for the player. three thinks y is. 
+            // SWAP THIS per decisions about the truth of up
+          let {role} = room.player.meta
+          
+          if(role && role.includes("actor"))
+          {
+            screen.material.opacity = .5
+          }else 
+          {
+            screen.material.opacity = 1.0
+
+          }
+
+          player_pos.set(x,z, -1.0 * y)
+          group.position.copy(player_pos.clone().add(offset))
+        }
+        setPos()
+
+
+
+        room.observe('update', () => {
+            setPos()
+        })
+      })
+
+
 
     // helper function to set a new source
     let setVideoSrc = (new_src) => {
-        videoEl.src = new_src
-        videoEl.load()
-    }
+        textureCreated = false
+        makeVideoEl(new_src)
+     }
     
 
 
-    resolve([group, setVideoSrc])
+    return [group, setVideoSrc]
       
-    })
 
 }

@@ -4,7 +4,7 @@ import Service from '/space/js/Service.js'
 import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
 import { createActor } from './three-utils/actorCast.js'
 
-import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
+import {makeVideoPlayer} from '/hmlt/video/makeVideoPlayer.js'
 import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
 var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, gesture_wrangler, audio_listener
@@ -68,6 +68,7 @@ export var reload = (scene)  => {
                              Service.get('knobs', knobs => { 
                                 knobs.observe('hmlt_run', msg => {
 
+                                    // msgs from builder
                                     if(msg === undefined) return
                                     if(msg.cmd === "setScene") 
                                     {
@@ -75,6 +76,9 @@ export var reload = (scene)  => {
                                         //setFog(msg.data)
                                     }
 
+                                })
+                                knobs.observe('hmlt_scene', msg => {
+                                    setScene(msg)
                                 })
                             })
 
@@ -139,6 +143,34 @@ const useKnobs = () => {
             
 
 
+const useVideo = (config_uri) => {
+    fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config_uri}`)
+        .then(
+        response => response.json())
+        .then(data =>  { 
+            console.log(data)
+            
+            let [player, setVideo] = makeVideoPlayer(
+                                             pc,
+                                            audio_listener,
+                                            gesture_wrangler,
+                                            data
+                                            )
+                                            
+            player.userData.alwaysRender = true
+            Service.get('knobs', knobs => { 
+                knobs.observe('hmlt_scene', msg => {
+                                    if(!Object.keys(data.videos).includes(msg)){
+                                        return
+                                    }
+                                    let uri = `${data.folder}/${data.videos[msg].name}`
+                                    setVideo(uri)
+                                })
+                        })
+            hmlt_root.add(player)
+        }
+        )
+}
 
     
 export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_config) => {
@@ -158,6 +190,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
 
     reload(scene)
     useKnobs()
+    useVideo("video_config.js")
 
     
     
