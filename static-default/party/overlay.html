@@ -220,7 +220,7 @@ Service.get('userMedia', userMedia => {
       video: acting ? {
         width: 1280,
         height: 720,
-        aspectRatio: { exact: 1920/1080 },
+        aspectRatio: 1920/1080,
         deviceId: { exact: defaultVideoDevice },
       } : userMedia.defaultConstraints.video,
       audio: acting ? {
