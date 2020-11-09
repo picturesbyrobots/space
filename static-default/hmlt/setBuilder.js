@@ -159,7 +159,7 @@ const useVideo = (config_uri) => {
                                             
             player.userData.alwaysRender = true
             Service.get('knobs', knobs => { 
-                knobs.observe('hmlt_scene', msg => {
+                knobs.observe('hmlt_video', msg => {
                                     if(!Object.keys(data.videos).includes(msg)){
                                         return
                                     }

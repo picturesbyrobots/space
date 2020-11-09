@@ -18,6 +18,7 @@
 <script>
 
 const soundPlaybackState = {};
+let conn;
 
 const connectWs = () => {
   const ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
@@ -49,81 +50,36 @@ const connectWs = () => {
 
 connectWs();
 
-class SoundController {
-  constructor(url) {
-    this.url = url;
+class VideoController{
+  constructor(scene) {
     this.el = soundCueTemplate.content.firstElementChild.cloneNode(true);
-    this.playTime = null;
-    this.volume = 1;
 
     this.startButton = this.el.querySelector('.startButton');
-    this.stopButton = this.el.querySelector('.stopButton');
 
-    const urlParts = url.split('/');
-    const title = urlParts[urlParts.length-1];
-    this.el.querySelector('.title').textContent = title;
+    this.el.querySelector('.title').textContent = scene;
 
     this.startButton.addEventListener('mousedown', e => {
       e.preventDefault();
-      this.playTime = Date.now();
-      this.stopButton.disabled = false;
-      this.send();
+      conn && conn.send('setKnob', {name: "hmlt_video", value : scene})
+
       // this.setNeedsDisplay();
     });
 
-    this.stopButton.addEventListener('mousedown', e => {
-      e.preventDefault();
-      this.playTime = null;
-      this.stopButton.disabled = true;
-      this.send();
-      // this.setNeedsDisplay();
-    });
-
-    this.el.querySelector('.volume').addEventListener('input', e => {
-      this.volume = e.target.valueAsNumber;
-      this.send();
-    });
+    
   }
-  // setNeedsDisplay() {
-  //   if (this.needsDisplay)
-  //     return;
-  //   this.needsDisplay = true;
-  //   requestAnimationFrame(() => this.display());
-  // }
-  // display() {
-  //   if (this.playTime)
-  //     this.setNeedsDisplay();
-  // }
-  send() {
-    if (this.playTime) {
-      soundPlaybackState[this.url] = {
-        playTime: this.playTime,
-        volume: this.volume,
-      };
-    } else {
-      delete soundPlaybackState[this.url];
-    }
-    conn.sendSound();
-  }
+ 
 }
+let config = 'hmltConfig.js'
+ fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
+ .then(
+        response => response.json())
+        .then(data => {
+          let {folder} = data
+           data.map(scene_data => {return new VideoController(scene_data.sceneName)})
+                           .map(controller => soundCues.appendChild(controller.el))
+          
+       })
 
-const sounds = [
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/scene1-sample.mp3',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_bassy_demo_1.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_open_voices_demo_10.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_water_drip_beat_demo_.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_demo_way_down_1.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_synth_demo_.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_waves_demo_.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_drips_mp3.mp3',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_waves_mp3.mp3',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_bass_mp3.mp3',
-
-];
-
-const soundControllers = sounds.map(sound => new SoundController(sound));
-
-for (const soundController of soundControllers)
-  soundCues.appendChild(soundController.el);
+      
 
 </script>
