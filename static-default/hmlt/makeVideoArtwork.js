@@ -112,6 +112,7 @@ export const makeVideoArtwork = (config, listener, gestureWrangler, video_data, 
       });
 
         const posSound = new THREE.PositionalAudio(listener);
+        posSound.panner.panningModel = 'equalpower';
     
         posSound.setRefDistance(50);
         posSound.setRolloffFactor(4);
