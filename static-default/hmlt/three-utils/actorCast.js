@@ -184,6 +184,7 @@ export const createActor = (object, parameters) => {
       sound.setVolume(0.0);
     }
     mesh.userData.unmuteSound = () => {
+
       sound.setVolume(1.0);
 
     }

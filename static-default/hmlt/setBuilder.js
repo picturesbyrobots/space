@@ -203,19 +203,19 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                 if(child.name === active_scene_name || child.userData.alwaysRender === true) {
                     if(child.name === active_scene_name)
                     {
-                        let actors = child.children.filter(obj => {obj.userData.isActor})
+                        let actors = child.children.filter(obj => {return obj.userData.isActor})
                         actors.map
                         (actor=> {
-                            actor.userData.muteSound()
+                            actor.userData.unmuteSound()
                         })
                     }
                     child.visible = true
                 }else {
                     child.visible = false
-                        let actors = child.children.filter(obj => {obj.userData.isActor})
+                        let actors = child.children.filter(obj => {return obj.userData.isActor})
                         actors.map
                         (actor=> {
-                            actor.userData.unmuteSound()
+                            actor.userData.muteSound()
                         })
                 }
             })
