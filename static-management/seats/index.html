@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<link rel=stylesheet href=/style.css>
+<style>
+
+html {
+  font-size: 18px;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+}
+
+#top {
+  border-bottom: 1px solid black;
+  display: flex;
+}
+
+label[for="seatAudience"] {
+  background: #f55;
+  padding: 0.5em;
+}
+
+label[for="seatAudience"].checked {
+  background: #5f5;
+}
+</style>
+<div id=top>
+  <label for=seatAudience><input type=checkbox id=seatAudience> <span>Seat audience</span></label>
+</div>
+<canvas id=audienceMap style="border: 1px solid red; width: 300px; height: 300px"></canvas>
+<script>
+
+const guests = {};
+const placeholderSeats = [];
+let audienceIsSeated = !!sessionStorage.audienceIsSeated;
+let ws;
+
+const connectWs = () => {
+  ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
+
+  ws.onclose = e => {
+    for (const k in guests)
+      delete guests[k];
+    setTimeout(connectWs, 1000);
+  };
+  ws.onmessage = e => {
+    const message = JSON.parse(e.data);
+    const {type, body} = message;
+    switch (type) {
+      case "guestUpdate": {
+          const { id, state } = body;
+          guests[id] = state;
+          if (!state.flags)
+            state.flags = {};
+          audienceView.setNeedsDisplay();
+          seatAudienceIfNeeded();
+        }
+        break;
+      case "guestLeaving": {
+          delete guests[body.id];
+          audienceView.setNeedsDisplay();
+        }
+        break;
+      default:
+        console.log('message', type, body);
+    }
+  };
+  ws.onopen = e => {
+  };
+
+  conn = {
+    send(type, body) {
+      ws.send(JSON.stringify({ type, body }));
+    },
+  };
+};
+
+connectWs();
+
+const pushFlags = id => {
+  const flags = guests[id].flags;
+  ws.send(JSON.stringify({
+    type: 'setGuestFlags',
+    body: { id: +id, flags, }
+  }));
+}
+
+class AudienceView {
+  constructor(el) {
+    this.canvas = el;
+    this.ctx = el.getContext('2d');
+    this.resize();
+    this.setNeedsDisplay();
+  }
+  resize() {
+    const { canvas } = this;
+    canvas.width = canvas.clientWidth * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+  }
+  setNeedsDisplay() {
+    if (!this.needsDisplay)
+      this.needsDisplay = true;
+    requestAnimationFrame(() => {
+      this.needsDisplay = false;
+      this.draw();
+    });
+  }
+  draw() {
+    const { canvas, ctx } = this;
+    const bounds = [-100, -100, 100, 100];
+    const w = +canvas.width;
+    const h = +canvas.height;
+    const expandBounds = (x, y, pad = 0) => {
+      bounds[0] = Math.min(bounds[0], x - pad);
+      bounds[1] = Math.min(bounds[1], y - pad);
+      bounds[2] = Math.max(bounds[2], x + pad);
+      bounds[3] = Math.max(bounds[3], y + pad);
+    };
+    const scale = x => x / Math.max(bounds[2] - bounds[0], bounds[3] - bounds[1]) * w;
+    const xy = (x, y) => [scale(x - bounds[0]), scale(y - bounds[1])];
+    for (const id in guests) {
+      const { position } = guests[id];
+      expandBounds(position[0], -position[1], 5);
+    }
+    for (let i = 0; i < bounds.length; i++)
+        bounds[i] *= 1.01;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = 'blue';
+    for (const seat of placeholderSeats) {
+      ctx.beginPath();
+      ctx.arc(...xy(seat[0], -seat[2]), scale(2), 0, 2*Math.PI)
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = '#5a0';
+    for (const id in guests) {
+      const guest = guests[id];
+      const { position, look } = guest;
+      const x = position[0];
+      const y = position[1];
+      const center = xy(x, -y);
+      ctx.save();
+      ctx.translate(...center);
+      ctx.rotate(look[0]);
+      ctx.translate(...center.map(x => x * -1));
+      ctx.beginPath();
+      ctx.moveTo(...xy(x, -4 - y));
+      ctx.lineTo(...xy(3 + x, 3 - y));
+      ctx.lineTo(...xy(-3 + x, 3 - y));
+      ctx.closePath();
+      ctx.restore();
+      ctx.fill();
+    }
+  }
+}
+
+const positionOfSeatWithFlags = (n, seats, rows, radius, distance, stadium) => {
+  let seat = n;
+  let row = 0;
+  while (seat > seats + row)
+    seat -= seats + ++row;
+
+  const seatRadius = radius + row * distance;
+  const rowSeats = seats + row;
+  const angle = distance * Math.PI / seatRadius / 2.;
+  const angleOfs = Math.PI / 2 - angle * (rowSeats + (row%2)-1) / 2;
+
+  const seatAngle = seat*angle + angleOfs + (row % 2) * angle / 2 - angle / 2;
+  return [
+    Math.cos(seatAngle) * seatRadius,
+    row * stadium,
+    -Math.sin(seatAngle) * seatRadius + radius,
+  ]
+};
+
+const positionOfSeat = n => positionOfSeatWithFlags(n, 10, 10, 100, 5, 3);
+
+const audienceView = new AudienceView(audienceMap);
+
+for (let i = 0; i < 198; i++)
+  placeholderSeats.push(positionOfSeat(i));
+
+const seatAudienceIfNeeded = () => {
+  seatAudience.checked = audienceIsSeated;
+  document.querySelector('label[for="seatAudience"]').classList.toggle('checked', audienceIsSeated);
+  if (!audienceIsSeated) {
+    for (const k in guests) {
+      const guest = guests[k];
+      if (guest.flags.seatNumber || guest.flags.fixedPosition) {
+        guest.flags.seatNumber = null;
+        guest.flags.fixedPosition = null;
+        pushFlags(k);
+      }
+    }
+    audienceView.setNeedsDisplay();
+    return;
+  }
+
+  const occupiedSeats = new Set();
+  for (const k in guests) {
+    const guest = guests[k];
+    if ('seatNumber' in guest.flags)
+      occupiedSeats.add(guest.flags.seatNumber);
+  }
+  for (const k in guests) {
+    const guest = guests[k];
+    if ('seatNumber' in guest.flags)
+      continue;
+    let nextFreeSeat = 0;
+    while (occupiedSeats.has(nextFreeSeat))
+      nextFreeSeat++;
+    occupiedSeats.add(nextFreeSeat);
+    guest.flags.seatNumber = nextFreeSeat;
+    guest.flags.fixedPosition = positionOfSeat(nextFreeSeat);
+      guest.flags.fixedPosition = [0, 2, 1].map(i => guest.flags.fixedPosition[i]);
+    guest.position = guest.flags.fixedPosition;
+    pushFlags(k);
+  }
+  audienceView.setNeedsDisplay();
+};
+
+seatAudience.addEventListener('input', e => {
+  audienceIsSeated = e.target.checked;
+  sessionStorage.audienceIsSeated = audienceIsSeated || '';
+  seatAudienceIfNeeded();
+});
+seatAudienceIfNeeded();
+
+
+</script>

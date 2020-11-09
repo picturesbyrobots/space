@@ -10,6 +10,7 @@ class Player {
     this.onchange = onchange;
     this.position = [Math.random() * 20 - 10, -90 + Math.random() * 10 - 5, 0];
     this.meta = { role: '', };
+    this.flags = {};
 
     // Gingerly unpack the saved position from sessionStorage. If anything
     // isn't a reasonable value, use the default.
@@ -35,7 +36,7 @@ class Player {
     this.onchange();
   }
   get position() {
-    return this._position;
+    return this.flags.fixedPosition || this._position;
   }
   set position(position) {
     this._position = position;
@@ -56,6 +57,8 @@ class Player {
     velocity[2] = apply(velocity[2], acceleration[2] * 0.05, -2);
   }
   stepPhysics() {
+    if (this.flags.fixedPosition)
+      return;
     const now = performance.now();
     const delta = Math.min(500, this.lastPhysicsStep ? now - this.lastPhysicsStep : 0) * (60/1000);
     this.lastPhysicsStep = now;
@@ -138,7 +141,11 @@ class Room {
       this.connectRTC()
     });
     ws.observe('guestUpdate', body => {
-      this.updateGuest(body.id, body.state);
+      if (body.id == this.whoami.seq) {
+        this.player.flags = body.state.flags || {};
+      } else {
+        this.updateGuest(body.id, body.state);
+      }
     });
     ws.observe('guestLeaving', body => {
       this.removeGuest(body.id);

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/s4y/reserve"
+	"github.com/s4y/space/util"
 	"github.com/s4y/space/world"
 )
 
@@ -33,13 +35,57 @@ var config struct {
 	RTCConfiguration json.RawMessage `json:"rtcConfiguration"`
 }
 
-type Knob struct {
+type KnobMessage struct {
 	Name  string      `json:"name"`
 	Value interface{} `json:"value"`
 }
 
-var knobsMutex sync.RWMutex
-var knobs map[string]interface{} = make(map[string]interface{})
+type KnobEventType int
+
+const (
+	KnobChanged KnobEventType = iota
+)
+
+type Knobs struct {
+	observers util.Observers
+
+	knobsMutex sync.RWMutex
+	knobs      map[string]interface{}
+}
+
+func (k *Knobs) Observe(ctx context.Context, e KnobEventType, cb interface{}) {
+	k.observers.Add(ctx, e, cb)
+	switch e {
+	case KnobChanged:
+		changeCb := cb.(func(string, interface{}))
+		for name, value := range k.Get() {
+			changeCb(name, value)
+		}
+	}
+}
+
+func (k *Knobs) Set(name string, value interface{}) {
+	k.knobsMutex.Lock()
+	k.knobs[name] = value
+	k.knobsMutex.Unlock()
+	for _, o := range k.observers.Get(KnobChanged) {
+		o.(func(string, interface{}))(name, value)
+	}
+}
+
+func (k *Knobs) Get() map[string]interface{} {
+	ret := make(map[string]interface{})
+	k.knobsMutex.RLock()
+	for k, v := range k.knobs {
+		ret[k] = v
+	}
+	k.knobsMutex.RUnlock()
+	return ret
+}
+
+var knobs Knobs = Knobs{
+	knobs: make(map[string]interface{}),
+}
 
 func startManagementServer(managementAddr string) {
 	mux := http.NewServeMux()
@@ -88,6 +134,17 @@ func startManagementServer(managementAddr string) {
 					Id uint32 `json:"id"`
 				}{seq})
 		})
+		knobs.Observe(ctx, KnobChanged, func(name string, value interface{}) {
+			ch <- world.MakeClientMessage(
+				"knob",
+				KnobMessage{
+					Name:  name,
+					Value: value,
+				})
+		})
+		for seq, g := range defaultWorld.GetGuests() {
+			ch <- world.MakeGuestUpdateMessage(seq, g)
+		}
 		var msg world.ClientMessage
 		for {
 			if err = conn.ReadJSON(&msg); err != nil {
@@ -95,14 +152,36 @@ func startManagementServer(managementAddr string) {
 			}
 			switch msg.Type {
 			case "setKnob":
-				var knob Knob
+				var knob KnobMessage
 				if err := json.Unmarshal(msg.Body, &knob); err != nil {
 					fmt.Println("knob unmarshal err", err)
 				}
-				knobsMutex.Lock()
-				knobs[knob.Name] = knob.Value
-				knobsMutex.Unlock()
-				defaultWorld.BroadcastFrom(0, world.MakeClientMessage("knob", knob))
+				knobs.Set(knob.Name, knob.Value)
+			case "setGuestFlags":
+				var setGuestFlags struct {
+					Id    uint32                 `json:"id"`
+					Flags map[string]interface{} `json:"flags"`
+				}
+				if err := json.Unmarshal(msg.Body, &setGuestFlags); err != nil {
+					fmt.Println("setGuestFlags unmarshal err", err)
+				}
+				// TODO: Not thread safe.
+				guest := defaultWorld.GetGuest(setGuestFlags.Id)
+				if guest == nil {
+					fmt.Println("tried to set flags on unknown guest", setGuestFlags.Id)
+					continue
+				}
+				if guest.Public.Flags == nil {
+					guest.Public.Flags = map[string]interface{}{}
+				}
+				for k, v := range setGuestFlags.Flags {
+					if v != nil {
+						guest.Public.Flags[k] = v
+					} else {
+						delete(guest.Public.Flags, k)
+					}
+				}
+				defaultWorld.UpdateGuest(setGuestFlags.Id)
 			case "broadcast":
 				defaultWorld.BroadcastFrom(0, msg.Body)
 			default:
@@ -124,6 +203,13 @@ func main() {
 
 	readConfig(*staticDir)
 	partyLine = NewWebRTCPartyLine(config.RTCConfiguration)
+
+	knobs.Observe(context.Background(), KnobChanged, func(name string, value interface{}) {
+		defaultWorld.BroadcastFrom(0, world.MakeClientMessage("knob", KnobMessage{
+			Name:  name,
+			Value: value,
+		}))
+	})
 
 	ln, err := net.Listen("tcp", *httpAddr)
 	if err != nil {
@@ -204,11 +290,9 @@ func main() {
 				}
 				defaultWorld.SetGuestDebug(seq, "fps", fps)
 			case "getKnobs":
-				knobsMutex.RLock()
-				for name, value := range knobs {
-					guest.Write(world.MakeClientMessage("knob", Knob{name, value}))
+				for name, value := range knobs.Get() {
+					guest.Write(world.MakeClientMessage("knob", KnobMessage{name, value}))
 				}
-				knobsMutex.RUnlock()
 			case "rtc":
 				var messageIn struct {
 					To      uint32          `json:"to"`

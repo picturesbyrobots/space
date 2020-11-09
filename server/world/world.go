@@ -22,6 +22,7 @@ type GuestState struct {
 
 type GuestPublic struct {
 	GuestState
+	Flags map[string]interface{} `json:"flags"`
 }
 
 type Guest struct {
@@ -98,7 +99,7 @@ type World struct {
 
 	mutex  sync.Mutex
 	seq    uint32
-	Guests map[uint32]*Guest `json:"guests"`
+	guests map[uint32]*Guest `json:"guests"`
 }
 
 type ClientMessage struct {
@@ -119,7 +120,7 @@ func MakeGuestUpdateMessage(id uint32, guest *Guest) interface{} {
 }
 
 func (w *World) broadcast(m interface{}, skip uint32) {
-	for k, v := range w.Guests {
+	for k, v := range w.guests {
 		if k == skip {
 			continue
 		}
@@ -132,7 +133,7 @@ func (w *World) join(seq uint32, g *Guest) {
 		Seq uint32 `json:"seq"`
 	}{seq}))
 
-	for k, v := range w.Guests {
+	for k, v := range w.guests {
 		if v == g {
 			continue
 		}
@@ -144,15 +145,31 @@ func (w *World) Observe(ctx context.Context, e WorldEventType, cb interface{}) {
 	w.observers.Add(ctx, e, cb)
 }
 
+func (w *World) GetGuest(seq uint32) *Guest {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	return w.guests[seq]
+}
+
+func (w *World) GetGuests() map[uint32]*Guest {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	ret := map[uint32]*Guest{}
+	for k, v := range w.guests {
+		ret[k] = v
+	}
+	return ret
+}
+
 func (w *World) AddGuest(ctx context.Context, g *Guest) uint32 {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 	w.seq += 1
 	seq := w.seq
-	if w.Guests == nil {
-		w.Guests = map[uint32]*Guest{}
+	if w.guests == nil {
+		w.guests = map[uint32]*Guest{}
 	}
-	w.Guests[seq] = g
+	w.guests[seq] = g
 	w.join(seq, g)
 	go func() {
 		<-ctx.Done()
@@ -167,7 +184,7 @@ func (w *World) AddGuest(ctx context.Context, g *Guest) uint32 {
 func (w *World) Rejoin(seq uint32) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
-	w.join(seq, w.Guests[seq])
+	w.join(seq, w.guests[seq])
 }
 
 func (w *World) BroadcastFrom(seq uint32, message interface{}) {
@@ -179,8 +196,8 @@ func (w *World) BroadcastFrom(seq uint32, message interface{}) {
 func (w *World) UpdateGuest(seq uint32) {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
-	g := w.Guests[seq]
-	w.broadcast(MakeGuestUpdateMessage(seq, g), seq)
+	g := w.guests[seq]
+	w.broadcast(MakeGuestUpdateMessage(seq, g), 0)
 	for _, o := range w.observers.Get(WorldEventGuestUpdated) {
 		o.(func(uint32, *Guest))(seq, g)
 	}
@@ -188,7 +205,7 @@ func (w *World) UpdateGuest(seq uint32) {
 
 func (w *World) SetGuestDebug(seq uint32, key string, value interface{}) {
 	w.mutex.Lock()
-	g := w.Guests[seq]
+	g := w.guests[seq]
 	defer w.mutex.Unlock()
 	g.debugInfo.Store(key, value)
 	for _, o := range w.observers.Get(WorldEventGuestDebug) {
@@ -204,7 +221,7 @@ func (w *World) RemoveGuest(seq uint32) {
 		struct {
 			Id uint32 `json:"id"`
 		}{seq}), seq)
-	delete(w.Guests, seq)
+	delete(w.guests, seq)
 	for _, o := range w.observers.Get(WorldEventGuestLeft) {
 		o.(func(uint32))(seq)
 	}

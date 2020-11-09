@@ -62,6 +62,7 @@ export default class PlayerControls {
       look[0] = look[0] % (Math.PI * 2);
       look[1] = Math.min(Math.PI / 2, look[1]);
       look[1] = Math.max(-Math.PI / 2, look[1]);
+      this.player.look = look;
     }
 
     const topDoc = window.top.document;
@@ -101,6 +102,7 @@ export default class PlayerControls {
         const touch = e.targetTouches[0];
         look[0] += ((lastX - touch.pageX) / document.body.clientWidth) * 1
         look[1] += ((lastY - touch.pageY) / document.body.clientHeight) * 1;
+        this.player.look = look;
         lastX = touch.pageX;
         lastY = touch.pageY;
       };
