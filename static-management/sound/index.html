@@ -78,11 +78,6 @@ class SoundController {
       this.send();
       // this.setNeedsDisplay();
     });
-
-    this.el.querySelector('.volume').addEventListener('input', e => {
-      this.volume = e.target.valueAsNumber;
-      this.send();
-    });
   }
   // setNeedsDisplay() {
   //   if (this.needsDisplay)
@@ -106,24 +101,17 @@ class SoundController {
     conn.sendSound();
   }
 }
+let config = 'sound_config.js'
+ fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
+ .then(
+        response => response.json())
+        .then(data => {
+          let {folder} = data
+           data.sounds.map(sound => {return new SoundController(`${folder}/${sound}`)})
+                           .map(controller => soundCues.appendChild(controller.el))
+          
+       })
 
-const sounds = [
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/scene1-sample.mp3',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_bassy_demo_1.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_open_voices_demo_10.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_water_drip_beat_demo_.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_demo_way_down_1.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_synth_demo_.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_waves_demo_.m4a',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_drips_mp3.mp3',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_waves_mp3.mp3',
-  'https://hamlet-gl-assets.s3.amazonaws.com/misc/sound/hamlet_bass_mp3.mp3',
-
-];
-
-const soundControllers = sounds.map(sound => new SoundController(sound));
-
-for (const soundController of soundControllers)
-  soundCues.appendChild(soundController.el);
+      
 
 </script>

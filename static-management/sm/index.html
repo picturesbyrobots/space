@@ -75,6 +75,7 @@ class SceneController{
 let config = 'hmltConfig.js'
  fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
         .then(
+
         response => response.json())
         .then(data => {
           data.map(scene_data => {return new SceneController(scene_data.sceneName)})
