@@ -54,11 +54,12 @@ const createSoundPlayer = (ac, destination) => {
         };
         sound.gain.connect(destination);
         getSound(k).then(buf => {
+          if (sound != playingSounds[k])
+            return;
           const source = ac.createBufferSource();
           source.buffer = buf;
           source.loop = true;
           source.start(ac.currentTime, Math.max(0, ((Date.now() - sound.playTime) / 1000) % buf.duration));
-          console.log('start playback at', ((Date.now() - sound.playTime) / 1000) % buf.duration);
           source.connect(sound.gain);
           sound.source = source;
           sound.gain.gain.setValueAtTime(0, ac.currentTime);
