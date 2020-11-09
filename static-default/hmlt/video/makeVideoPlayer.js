@@ -1,5 +1,5 @@
 import * as THREE from '/deps/three/build/three.module.js'
-
+import Service from '/space/js/Service.js';
 /*  
 =========
 makeVideoArtwork.js
@@ -64,14 +64,17 @@ const withMat = (type, mat_options) => {
 export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, parameters) => {
 
 
+
     let options = {...defaults, ...parameters}
     let textureCreated = false;
 
  // create the screen that will hold the video
     const screen = new THREE.Mesh(
         new THREE.PlaneBufferGeometry(10, 10),
-        new THREE.MeshPhongMaterial()
+        new THREE.MeshPhongMaterial({visible: false})
       );
+
+    
 
     // video element. set the cross origin in case we want to load from different sources
     const videoEl = document.createElement('video')
@@ -79,13 +82,10 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
     videoEl.crossOrigin = "anonymous";
 
     videoEl.loop = false;
-    videoEl.src = video_data.uri;
-    videoEl.load();
 
 
       const resizeScreen = () => {
         screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
-        screen.visible =  true
 
       }
 
@@ -107,16 +107,16 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
 
       })
 
-        const posSound = new THREE.PositionalAudio(listener);
-        posSound.panner.panningModel = 'equalpower';
+        // const posSound = new THREE.PositionalAudio(listener);
+        // posSound.panner.panningModel = 'equalpower';
     
-        posSound.setRefDistance(50);
-        posSound.setRolloffFactor(4);
-        posSound.setDistanceModel('exponential');
-        posSound.setDirectionalCone(120, 230, 0.1);
-        posSound.rotation.y = Math.PI;
+        // posSound.setRefDistance(50);
+        // posSound.setRolloffFactor(4);
+        // posSound.setDistanceModel('exponential');
+        // posSound.setDirectionalCone(120, 230, 0.1);
+        // posSound.rotation.y = Math.PI;
 
-        screen.add(posSound)
+        // screen.add(posSound)
 
       // syncing taken from buildSummerHouse in main party space
       // I also create the video material  to avoid scenarios where the texture is created before the video element loads.
@@ -130,6 +130,7 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
             videoTexture.magFilter = THREE.LinearFilter;
             videoTexture.format = THREE.RGBFormat;
 
+            console.log(videoTexture)
             screen.material = withMat(options.material_type , {
                                                                 map : videoTexture,
                                                                 transparent : true,
@@ -141,6 +142,7 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
 
             screen.material.visible = true
             textureCreated = true;
+            console.log("playing")
         }
 
 
@@ -154,6 +156,46 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
     const group = new THREE.Group();
     group.add(screen);
     group.name = "videoPlayer"
+    
+    const player_pos = new THREE.Vector3(0.0, 0.0, 0.0)
+
+
+    // TODO: add tanget functions
+    const offset = new THREE.Vector3(0.0, 10, -19.0)
+
+
+
+    Service.get('room', room => {
+
+        const setPos = () => {
+          let [x,y,z] = room.player.position
+
+            // z is up for the player. three thinks y is. 
+            // SWAP THIS per decisions about the truth of up
+          let {role} = room.player.meta
+          
+          if(role && role.includes("actor"))
+          {
+            screen.material.opacity = .5
+          }else 
+          {
+            screen.material.opacity = 1.0
+
+          }
+
+          player_pos.set(x,z, -1.0 * y)
+          group.position.copy(player_pos.clone().add(offset))
+        }
+        setPos()
+
+
+
+        room.observe('update', () => {
+            setPos()
+        })
+      })
+
+
 
     // helper function to set a new source
     let setVideoSrc = (new_src) => {

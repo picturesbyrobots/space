@@ -144,10 +144,16 @@ const useVideo = (config_uri) => {
         .then(
         response => response.json())
         .then(data =>  { 
-            let [player, setVideo] = makeVideoPlayer(pc,
+            
+            let test_path = `${data.folder}/${data.videos[0].name}`
+            let [player, setVideo] = makeVideoPlayer(
+                                             pc,
                                             audio_listener,
                                             gesture_wrangler,
-                                            {uri : data[0].uri})
+                                            data
+                                            )
+                                            
+            player.userData.alwaysRender = true
             hmlt_root.add(player)
         }
         )
