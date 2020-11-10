@@ -24,7 +24,12 @@ export default class RTCPeer {
 
     pc.ontrack = e => {
       const mid = e.transceiver.mid;
-      this.tracksByMid[mid] = e.track;
+      const track = e.track;
+      this.tracksByMid[mid] = track;
+      e.streams[0].addEventListener('removetrack', e => {
+        if (this.tracksByMid[mid] == e.track)
+          delete this.tracksByMid[mid];
+      });
       const obs = this.midObservers[mid];
       if (obs)
         obs(e.track);
