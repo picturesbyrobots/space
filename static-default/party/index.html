@@ -428,7 +428,9 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
             videoEl.muted = false;
           }
         } else if (posSound.source) {
-          posSound.disconnect();
+          try {
+            posSound.disconnect();
+          } catch(e){}
         }
     };
 
@@ -436,8 +438,11 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       group, head, body, posSound,
       destroy() {
         videoEl.srcObject = null;
-        if (posSound.source)
+        videoEl.load();
+        try {
+          posSound.getOutput().disconnect();
           posSound.disconnect();
+        } catch(e){}
       },
       get videoTrack() { return videoTrack; },
       set videoTrack(newVideoTrack) {

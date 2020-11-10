@@ -171,8 +171,11 @@ export const createActor = (object, parameters) => {
         }
         if (actor_element.srcObject && actor_element.srcObject.getAudioTracks().length)
           sound.setMediaStreamSource(actor_element.srcObject);
-        else if (sound.source)
-          sound.disconnect();
+        else if (sound.source) {
+          try {
+            sound.disconnect();
+          } catch(e){}
+        }
     }
 
     const getStream = () => {
