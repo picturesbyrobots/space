@@ -258,7 +258,10 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                 }
 
                 const updateMediaStream = (id,t) => {
-                    knownStreams[id] = t;
+                    if (t)
+                      knownStreams[id] = t;
+                    else
+                      delete knownStreams[id];
 
                     if(!id_lookup.has(id)) {
                         return
