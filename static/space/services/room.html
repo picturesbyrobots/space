@@ -10,7 +10,7 @@ class Player {
     this.onchange = onchange;
     this.position = [Math.random() * 20 - 10, -90 + Math.random() * 10 - 5, 0];
     this.meta = { role: '', };
-    this.flags = {};
+    this._flags = {};
 
     // Gingerly unpack the saved position from sessionStorage. If anything
     // isn't a reasonable value, use the default.
@@ -41,6 +41,14 @@ class Player {
   set position(position) {
     this._position = position;
     this.onchange();
+  }
+  get flags() {
+    return this._flags;
+  }
+  set flags(flags) {
+    this._flags = flags;
+    if (flags && flags.fixedPosition)
+      this._position = flags.fixedPosition;
   }
   setMeta(meta) {
     Object.assign(this.meta, meta);  
@@ -167,6 +175,8 @@ class Room {
   updateGuest(id, state) {
     const guest = this.getOrCreateGuest(id);
     guest.state = state;
+    if (state.flags && state.flags.fixedPosition)
+      state.position = state.flags.fixedPosition;
     this.observers.fire('update', id, guest);
   }
   removeGuest(id) {

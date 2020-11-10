@@ -53,6 +53,8 @@ const connectWs = () => {
           guests[id] = state;
           if (!state.flags)
             state.flags = {};
+          if (state.flags.fixedPosition)
+            state.position = state.flags.fixedPosition;
           audienceView.setNeedsDisplay();
           seatAudienceIfNeeded();
         }
