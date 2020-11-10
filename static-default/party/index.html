@@ -73,8 +73,15 @@ const createSoundPlayer = (ac, destination) => {
     return soundPromises[url] || (soundPromises[url] = 
       fetch(url)
         .then(r => r.arrayBuffer())
-        .then(ab => ac.decodeAudioData(ab))
-        );
+        .then(ab => {
+          if (ac.decodeAudioData.length > 1) {
+            return new Promise((resolve, reject) => {
+              ac.decodeAudioData(ab, resolve, reject);
+            });
+          }
+          return ac.decodeAudioData(ab)
+        })
+    );
   }
 
   window.addEventListener('unload', () => {
