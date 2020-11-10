@@ -40,9 +40,9 @@ const createSoundPlayer = (ac, destination) => {
           continue;
       }
       delete playingSounds[k];
-      sound.gain.gain.setTargetAtTime(0, ac.currentTime, 0.5);
+      sound.gain.gain.setTargetAtTime(0, ac.currentTime, 1);
       if (sound.source)
-        sound.source.stop(ac.currentTime + 2);
+        sound.source.stop(ac.currentTime + 10);
     }
     for (const k in state) {
       if (playingSounds[k]) {
