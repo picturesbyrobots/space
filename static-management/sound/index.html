@@ -54,10 +54,12 @@ class SoundController {
     this.url = url;
     this.el = soundCueTemplate.content.firstElementChild.cloneNode(true);
     this.playTime = null;
-    this.volume = 1;
 
     this.startButton = this.el.querySelector('.startButton');
     this.stopButton = this.el.querySelector('.stopButton');
+    this.volumeInput = this.el.querySelector('.volume');
+
+    this.volume = this.volumeInput.valueAsNumber;
 
     const urlParts = url.split('/');
     const title = urlParts[urlParts.length-1];
@@ -77,6 +79,11 @@ class SoundController {
       this.stopButton.disabled = true;
       this.send();
       // this.setNeedsDisplay();
+    });
+
+    this.volumeInput.addEventListener('input', e => {
+      this.volume = this.volumeInput.valueAsNumber;
+      this.send();
     });
   }
   // setNeedsDisplay() {
