@@ -493,18 +493,6 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
         removeGuest(id, true);
         updateMedia(id, guest);
       }
-      // edge case. if an actor is already casting when the guest first arrives
-      // we need to create their stream before they can cast
-      // TODO? 
-      else 
-      {
-
-        const actor = getOrCreateGuest(id, remoteGuest)
-        removeGuest(id, true)
-        updateMedia(id, actor)
-        return
-
-      }
       return;
     }
     clearActorRole(id);
