@@ -11,10 +11,16 @@ class HamletService {
 
   setWs(ws) {
     this.ws = ws;
-    console.log('setWS')
     ws.observe('hmlt_chat', message => {
-      console.log(message)
-      this.observers.fire('hmlt_message', message)
+      switch(message.cmd) {
+        case 'play_video' :
+          this.observers.fire('play_video', message.data);
+          break;
+          
+        default :
+          break;
+
+      }
     })
 
   }
