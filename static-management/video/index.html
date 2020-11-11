@@ -60,7 +60,7 @@ class VideoController{
 
     this.startButton.addEventListener('mousedown', e => {
       e.preventDefault();
-      conn && conn.send('setKnob', {name: "hmlt_video", value : scene})
+      conn && conn.send('broadcast', {type: 'hmlt_chat', body:{cmd : 'play_video', data : scene }})
 
       // this.setNeedsDisplay();
     });

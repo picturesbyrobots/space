@@ -61,10 +61,11 @@ const withMat = (type, mat_options) => {
 
 }
 
-export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, parameters) => {
+export const makeVideoPlayer = (config, gestureWrangler, parameters) => {
 
 
 
+  
     let options = {...defaults, ...parameters}
     let textureCreated = false;
 
@@ -79,7 +80,12 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
     // video element. set the cross origin in case we want to load from different sources
     let video_el_id = "videoPLayerElement"
 
+
     const makeVideoEl = (uri) => {
+
+      
+      let videoTexture;
+      let videoMat; 
 
       const videoEl = document.createElement('video')
       videoEl.playsInline = true;
@@ -99,26 +105,28 @@ export const makeVideoPlayer = (config, listener, gestureWrangler, video_data, p
         if(textureCreated) 
         {
           screen.material.visible = false
+          videoTexture.dispose()
+          videoMat.dispose()
         }
-        videoEl.remove()
 
       })
       videoEl.addEventListener('playing', e => {
         if(!textureCreated) {
 
             
-            const videoTexture = new THREE.VideoTexture(videoEl);
+            videoTexture = new THREE.VideoTexture(videoEl);
             videoTexture.minFilter = THREE.LinearFilter;
             videoTexture.magFilter = THREE.LinearFilter;
             videoTexture.format = THREE.RGBFormat;
 
-            console.log(videoTexture)
-            screen.material = withMat(options.material_type , {
-                                                                map : videoTexture,
-                                                                transparent : true,
-                                                                opacity : 1,
-                                                                side : THREE.DoubleSide
+            videoMat = withMat(options.material_type , {
+                                                            map : videoTexture,
+                                                            transparent : true,
+                                                            opacity : 1,
+                                                            side : THREE.DoubleSide
             })
+
+            screen.material = videoMat
 
             resizeScreen(videoEl);
 

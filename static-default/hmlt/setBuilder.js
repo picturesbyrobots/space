@@ -148,18 +148,15 @@ const useVideo = (config_uri) => {
         .then(
         response => response.json())
         .then(data =>  { 
-            console.log(data)
             
             let [player, setVideo] = makeVideoPlayer(
                                              pc,
-                                            audio_listener,
                                             gesture_wrangler,
-                                            data
                                             )
                                             
             player.userData.alwaysRender = true
-            Service.get('knobs', knobs => { 
-                knobs.observe('hmlt_video', msg => {
+            Service.get('hamlet', show => { 
+                show.observe('play_video', msg => {
                                     if(!Object.keys(data.videos).includes(msg)){
                                         return
                                     }
