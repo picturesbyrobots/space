@@ -1,5 +1,4 @@
 import * as THREE from '/deps/three/build/three.module.js'
-import {GUI} from '/deps/three/examples/jsm/libs/dat.gui.module.js'
 import Service from '/space/js/Service.js'
 
 import {useSets, LOADER_LOG_LEVEL} from '/hmlt/setLoader.js'
@@ -8,8 +7,9 @@ import { createActor } from './three-utils/actorCast.js'
 import {makeVideoArtwork} from '/hmlt/makeVideoArtwork.js'
 import {useSceneScripts, LOG_LEVEL} from '/hmlt/scenes/scenes.js'
 
-var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, lighting_panel, gesture_wrangler, audio_listener
+var camera, hmlt_root , renderer,clock, controls, transform_controls, panel, gesture_wrangler, audio_listener
 
+let knownStreams = {};
 let setStreamFunctions, id_lookup;
 
 let active_model_name = ""
@@ -23,12 +23,17 @@ let pc;
 
 const createActors = (object, actors) => {
             actors.forEach(actor_data => {
+
                         let {x,y,z} = actor_data.transform.position;
                         let [sx,sy,sz] = actor_data.transform.scale;
                         let [qx,qy,qz,qw] = actor_data.transform.rotation
+
+                        let crop = actor_data.crop ? actor_data.crop : {cropLeft : 0.0, cropRight : 1.0}
+
                         let [actor, setStream, getStream] = createActor(object, {  name : actor_data.name, 
                                                                                       listener : audio_listener, 
                                                                                       position : new THREE.Vector3(x,y,z),
+                                                                                      crop : crop,
                                                                                       scale : new THREE.Vector3(sx,sy,sz),
                                                                                       rotation : new THREE.Quaternion(qx,qy,qz,qw),
                                                                                       gestureWrangler : gesture_wrangler})
@@ -137,9 +142,6 @@ const useKnobs = () => {
 
     
 export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_config) => {
-    lighting_panel = new GUI({width: 300})
-
-
     config = config_uri
     gesture_wrangler = gw,
     audio_listener = al
@@ -195,8 +197,11 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                     {
                         return
                     }
-                    setStreamFunctions.set(actor_name, {...setStreamFunctions.get(actor_name), id : id })
+                    const funcs = {...setStreamFunctions.get(actor_name), id : id };
+                    setStreamFunctions.set(actor_name, funcs)
                     id_lookup.set(id, actor_name)
+                    if (knownStreams[id])
+                      funcs.setStream(knownStreams[id])
                 }
                 const clearActorRole = (id) => {
                     if(!id_lookup.has(id)) {
@@ -207,6 +212,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                 }
 
                 const updateMediaStream = (id,t) => {
+                    knownStreams[id] = t;
 
                     if(!id_lookup.has(id)) {
                         return

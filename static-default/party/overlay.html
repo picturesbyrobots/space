@@ -7,7 +7,7 @@ body {
 }
 
 body {
-  font-family: system-ui;
+  font-family: system-ui, "Helvetica Neue", Helvetica, sans-serif;
   font-size: 14px;
 
   margin: 0;
@@ -220,11 +220,11 @@ Service.get('userMedia', userMedia => {
       video: acting ? {
         width: 1280,
         height: 720,
-        aspectRatio: { exact: 1920/1080 },
+        aspectRatio: 1920/1080,
         deviceId: { exact: defaultVideoDevice },
       } : userMedia.defaultConstraints.video,
       audio: acting ? {
-        noiseSuppression: false,
+        // noiseSuppression: !actorRawMic,
         echoCancellation: !actorRawMic,
         deviceId: { exact: defaultAudioDevice },
       } : userMedia.defaultConstraints.audio,

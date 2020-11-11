@@ -173,7 +173,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
 
   // Work around for missing echo cancellation on many kinds of audio:
   // https://crbug.com/687574
-  if (navigator.userAgent.indexOf('Chrome') != -1) {
+  if (navigator.userAgent.indexOf('Chrome') != -1 || navigator.userAgent.indexOf('Firefox') != -1) {
     const loopbackDestination = listener.context.createMediaStreamDestination();
     const loopbackEl = document.createElement('audio');
     const loopback = new RTCLoopback(stream => {
@@ -364,6 +364,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       videoEl.muted = true;
 
     const posSound = new THREE.PositionalAudio(listener);
+    posSound.panner.panningModel = 'equalpower';
     posSound.setRefDistance(posAudioParams.refDistance);
     posSound.setRolloffFactor(posAudioParams.rolloffFactor);
     posSound.setDistanceModel('exponential');
@@ -482,6 +483,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       }
       // edge case. if an actor is already casting when the guest first arrives
       // we need to create their stream before they can cast
+      // TODO? 
       else 
       {
 
@@ -512,11 +514,8 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
   }
 
   const updateMedia = (id, { videoTrack, audioTrack }) => {
-    if(hasActorWithId(id)) 
-    {
-      updateMediaStream(id, new MediaStream([videoTrack, audioTrack].filter(t => t)));
+    updateMediaStream(id, new MediaStream([videoTrack, audioTrack].filter(t => t)));
 
-    }
     if (id == projectorId) {
       projector.setStream(new MediaStream([videoTrack, audioTrack].filter(t => t)));
       return;
@@ -563,6 +562,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     group.add(light);
       
     const posSound = new THREE.PositionalAudio(listener);
+    posSound.panner.panningModel = 'equalpower';
     posSound.setRefDistance(10);
     posSound.setRolloffFactor(1.5);
     posSound.setDistanceModel('exponential');
@@ -614,8 +614,11 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     if (ownActorName) {
       const obj = scene.getObjectByName(ownActorName);
       if (obj) {
+
+        let {width} = obj.geometry.parameters
         obj.add(camera);
-        camera.position.set(0, 9, -10);
+
+        camera.position.set(0, 9, -1.25 * width);
         camera.rotation.set(-Math.PI/11, Math.PI, 0);
         camera.fov = 80;
         camera.updateProjectionMatrix();

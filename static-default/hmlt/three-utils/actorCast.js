@@ -1,4 +1,5 @@
 import * as THREE from '/deps/three/build/three.module.js'
+import Service from '/space/js/Service.js'
 
 
 let defaults = {
@@ -8,6 +9,7 @@ let defaults = {
     rotation : new THREE.Quaternion(0,0,0,1),
     scale : new THREE.Vector3(1,1,1),
     stream : null
+    
 }
 let module_name = "aCTOR"
 
@@ -26,6 +28,8 @@ const createChromaKeyMaterial = () => {
       aspect: { value: 1 },
       slop: { value: 0.1 },
       crop: { value: 0 },
+      cropLeft : {value: 0},
+      cropRight : {value: 1.0},
       edgeCorrection: { value: 0.0 },
     },
     vertexShader: `
@@ -46,6 +50,8 @@ const createChromaKeyMaterial = () => {
 
       uniform float slop;
       uniform float edgeCorrection;
+      uniform float cropLeft;
+      uniform float cropRight;
 
       varying vec2 p;
       uniform sampler2D map;
@@ -57,6 +63,8 @@ const createChromaKeyMaterial = () => {
 
         tex *= pow(1.-clamp(tex.g - max(tex.r, tex.b) - slop, 0., 1.), 50.);
         tex.g = min(tex.g, max(tex.r, tex.b) + edgeCorrection);
+        tex *= step(cropLeft, uv.x);
+        tex *= 1.0 - step(cropRight, uv.x);
         gl_FragColor = tex;
       }
     `,
@@ -101,14 +109,36 @@ export const createActor = (object, parameters) => {
     //     }))
 
 
+    let scale  = options.scale.x
+    const width = options.width * scale
+    const height = options.height * scale
     const mesh = new THREE.Mesh(
-         new THREE.PlaneBufferGeometry(options.width, options.height),
+         new THREE.PlaneBufferGeometry(width, height),
          chromaMat
     )
 
+    const updateScale = (data) => {
+      const width = options.width * data.scale
+      const height = options.height * data.scale
+      mesh.geometry.copy(new THREE.PlaneBufferGeometry(width, height))
+
+    }
+
+    const updateCrop = (cropData) => {
+
+      if(cropData.cropLeft)
+        mesh.material.uniforms.cropLeft.value = cropData.cropLeft;
+
+      if(cropData.cropRight) 
+        mesh.material.uniforms.cropRight.value = cropData.cropRight;
+
+
+    }
     mesh.material.uniforms.map.value = videoTexture;
     mesh.material.uniforms.slop.value = 0.05;
     mesh.material.uniforms.edgeCorrection.value = 0.2;
+    updateCrop(options.crop)
+    
 
 
     let sound =  new THREE.Audio(options.listener)
@@ -156,8 +186,31 @@ export const createActor = (object, parameters) => {
     object.add(mesh)
     mesh.rotation.setFromQuaternion(options.rotation)
 
-    mesh.scale.copy(options.scale)
 
     mesh.position.copy(options.position)
+
+
+    Service.get('knobs', knobs => {
+      knobs.observe('hmlt_run', msg =>{
+
+        if(msg === undefined) return
+        if (msg.cmd === "cropActor") 
+        {
+          if(mesh.name === msg.data.name)
+          {
+              updateCrop(msg.data)
+          }
+
+        }
+        if(msg.cmd === "scaleActor")
+        {
+          if(mesh.name === msg.data.name)
+            {
+                updateScale(msg.data)
+            }
+        }
+
+      })
+    })
     return [mesh, setStream, getStream]
     }
