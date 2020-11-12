@@ -152,11 +152,6 @@ const useKnobs = () => {
 
 
 const useVideo = (config_uri) => {
-    fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config_uri}`)
-        .then(
-        response => response.json())
-        .then(data =>  { 
-            
             let [player, setVideo] = makeVideoPlayer(
                                              pc,
                                             gesture_wrangler,
@@ -165,11 +160,8 @@ const useVideo = (config_uri) => {
             player.userData.alwaysRender = true
             Service.get('hamlet', show => { 
                 show.observe('play_video', msg => {
-                                    if(!Object.keys(data.videos).includes(msg)){
-                                        return
-                                    }
-                                    let uri = `${data.folder}/${data.videos[msg].name}`
-                                    setVideo(uri)
+                                    console.log(`playing ${msg}`)
+                                    setVideo(msg)
                                 })
                         })
             hmlt_root.add(player)

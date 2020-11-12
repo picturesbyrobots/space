@@ -51,16 +51,18 @@ const connectWs = () => {
 connectWs();
 
 class VideoController{
-  constructor(scene) {
+  constructor(folder, video_name) {
     this.el = soundCueTemplate.content.firstElementChild.cloneNode(true);
 
     this.startButton = this.el.querySelector('.startButton');
 
     this.el.querySelector('.title').textContent = scene;
 
+    let uri = `${folder}/${video_name}`
+
     this.startButton.addEventListener('mousedown', e => {
       e.preventDefault();
-      conn && conn.send('broadcast', {type: 'hmlt_chat', body:{cmd : 'play_video', data : scene }})
+      conn && conn.send('broadcast', {type: 'hmlt_chat', body:{cmd : 'play_video', data : uri}})
 
       // this.setNeedsDisplay();
     });
@@ -69,13 +71,13 @@ class VideoController{
   }
  
 }
-let config = 'hmltConfig.js'
+let config = 'video_config.js'
  fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
  .then(
         response => response.json())
         .then(data => {
           let {folder} = data
-           data.map(scene_data => {return new VideoController(scene_data.sceneName)})
+           data.map(scene_data => {return new VideoController(folder,video_name)})
                            .map(controller => soundCues.appendChild(controller.el))
           
        })
