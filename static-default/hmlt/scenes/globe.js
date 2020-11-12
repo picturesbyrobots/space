@@ -13,9 +13,7 @@ export const init = (scene_root) =>
       const sky = new THREE.Mesh(skyGeo, material);
       scene_root.add(sky)
       
-      let wall_mat = scene_root.getObjectByName('backwall').material
 
-      setRepeat(wall_mat, 30, 30 )
       
 
       

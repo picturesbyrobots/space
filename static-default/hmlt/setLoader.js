@@ -50,6 +50,11 @@ export const loadSet = (object, config, actor_factory) => {
         const promises = config.models.map(model => {
 
         return loadMesh(model).then(mesh => {
+            if(mesh === undefined)
+            {
+                console.log("undefined mesh")
+                return
+            }
             scene.add(mesh)
         })
     })
