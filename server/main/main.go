@@ -32,6 +32,7 @@ func readConfig(staticDir string) {
 
 var partyLine *WebRTCPartyLine
 var config struct {
+	Chat             *bool           `json:"chat,omitempty"`
 	RTCConfiguration json.RawMessage `json:"rtcConfiguration"`
 }
 
@@ -307,6 +308,9 @@ func main() {
 					fmt.Println("malformed rtc message from", seq, string(messageIn.Message), err)
 				}
 			case "chat":
+				if config.Chat != nil && *config.Chat == false {
+					break
+				}
 				var chatMessage struct {
 					Message string `json:"message"`
 				}

@@ -116,7 +116,7 @@ const partyFrame = document.createElement('iframe');
 partyFrame.id = 'partyFrame';
 partyFrame.src = 'party/';
 
-if (sessionStorage.inParty) {
+if (true || sessionStorage.inParty) {
   window.waitForGesture = false;
   document.body.appendChild(partyFrame);
 } else {
