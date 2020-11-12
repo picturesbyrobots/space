@@ -109,8 +109,16 @@ export var reload = (scene)  => {
                                                 let {x,y,z} = actor.transform.position;
                                                 let [sx,sy,sz] = actor.transform.scale;
                                                 let [qx,qy,qz,qw] =actor.transform.rotation
-                                                let crop = actor_data.crop ? actor_data.crop : {cropLeft : 1.0, cropRight : 1.0}
-                                                
+
+                                                let crop
+                                                if (Object.keys(actor.crop).includes("cropLeft"))
+                                                {
+                                                    crop = actor.crop
+
+                                                }else {
+                                                    crop = {cropLeft : 0.0, cropRight : 1.0}
+                                                }
+
                                                 createActor(obj, { name : actor.name,
                                                                     position : new THREE.Vector3(x,y,z),
                                                                     crop : crop,
@@ -763,9 +771,9 @@ export var initBuilder = (scene,config_uri, k_camera, renderer) => {
         let actor_folder = actor_panel.addFolder('Create Actor')
         let actorController = {
             name : selected_obj.name,
-            cropLeft : 0.0,
-            cropRight : 1.0,
-            scale : 1.0
+            cropLeft : selected_obj.userData.cropLeft,
+            cropRight : selected_obj.userData.cropRight,
+            scale : selected_obj.userData.scale
         }
 
         actor_folder.add(actorController, 'name')

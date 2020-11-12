@@ -28,7 +28,15 @@ const createActors = (object, actors) => {
                         let [sx,sy,sz] = actor_data.transform.scale;
                         let [qx,qy,qz,qw] = actor_data.transform.rotation
 
-                        let crop = actor_data.crop ? actor_data.crop : {cropLeft : 0.0, cropRight : 1.0}
+
+                        let crop
+                        if (Object.keys(actor_data.crop).includes("cropLeft"))
+                        {
+                            crop = actor_data.crop
+
+                        }else {
+                            actor_data= {cropLeft : 0.0, cropRight : 1.0}
+                        }
 
                         let [actor, setStream, getStream] = createActor(object, {  name : actor_data.name, 
                                                                                       listener : audio_listener, 

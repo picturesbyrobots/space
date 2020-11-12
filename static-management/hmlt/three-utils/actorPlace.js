@@ -42,8 +42,12 @@ export const createActor = (object, parameters) => {
 
         mesh.userData = 
         {
-            isActor : true
+            isActor : true,
+            cropLeft : options.crop.cropLeft,
+            cropRight : options.crop.cropRight,
+            scale : options.scale.x
         }
+        
 
 
     mesh.userData.crop = options.crop

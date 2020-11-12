@@ -43,9 +43,9 @@ export const init = (scene_root) =>
       
       const chair_offsets =
             [
-                  [-0,45, 5],
-                  [10, 50, 10],
-                  [10,30, -5]
+                  [-0,35, 0],
+                  [10, 40,0],
+                  [10,20, 0]
 
             ]
 
@@ -53,7 +53,8 @@ export const init = (scene_root) =>
       chair_offsets.map(offset => {
             let [x,y,z] = offset
             let new_dup = scene_root.getObjectByName("chair").clone()
-            new_dup.position.set(x,y,z)
+
+            new_dup.position.add(new THREE.Vector3(x,y,z))
             new_dup.userData = 
             {
                   animate : true,
@@ -77,7 +78,8 @@ export const init = (scene_root) =>
                   axis : 0
             } 
 
-      chair.translateY(20)
+
+      chair.translateY(10)
 
 
       
