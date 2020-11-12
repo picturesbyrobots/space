@@ -180,11 +180,11 @@ const positionOfSeatWithFlags = (n, seats, radius, distance, stadium) => {
   ]
 };
 
-const positionOfSeat = n => positionOfSeatWithFlags(n, 10, 100, 5, 5);
+const positionOfSeat = n => positionOfSeatWithFlags(n, 4, 100, 5, 6);
 
 const audienceView = new AudienceView(audienceMap);
 
-for (let i = 0; i < 198; i++)
+for (let i = 0; i < 126; i++)
   placeholderSeats.push(positionOfSeat(i));
 
 const seatAudienceIfNeeded = () => {
