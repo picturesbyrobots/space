@@ -40,8 +40,8 @@ export default class PlayerControls {
       }
     };
 
-    window.top.addEventListener('keydown', handleKey(true));
-    window.top.addEventListener('keyup', handleKey(false));
+    Service.window.addEventListener('keydown', handleKey(true));
+    Service.window.addEventListener('keyup', handleKey(false));
 
     // TODO: Way to unsubscribe
     Service.get('knobs', knobs => {
@@ -65,7 +65,7 @@ export default class PlayerControls {
       this.player.look = look;
     }
 
-    const topDoc = window.top.document;
+    const topDoc = Service.window.document;
     let isMoving = false;
     let mouseDownTime;
     const cancel = () => {
@@ -81,7 +81,7 @@ export default class PlayerControls {
     window.addEventListener('mousedown', e => {
       if (e.target != document.body && !('clickThrough' in e.target.dataset))
         return;
-      window.top.focus();
+      Service.window.focus();
       e.preventDefault();
       topDoc.body.addEventListener('mousemove', moveListener);
       topDoc.body.requestPointerLock();

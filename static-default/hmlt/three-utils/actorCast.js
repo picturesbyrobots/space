@@ -169,13 +169,11 @@ export const createActor = (object, parameters) => {
           actor_element.srcObject = null;
           mesh.visible = false;
         }
+        try {
+          sound.disconnect();
+        } catch(e){}
         if (actor_element.srcObject && actor_element.srcObject.getAudioTracks().length)
           sound.setMediaStreamSource(actor_element.srcObject);
-        else if (sound.source) {
-          try {
-            sound.disconnect();
-          } catch(e){}
-        }
     }
 
     const getStream = () => {

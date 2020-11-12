@@ -11,30 +11,33 @@ body {
   margin: 0;
 }
 
-#top {
+#toggles {
   border-bottom: 1px solid black;
   display: flex;
 }
 
-label[for="seatAudience"] {
+#toggles > label {
   background: #f55;
   padding: 0.5em;
 }
 
-label[for="seatAudience"].checked {
+#toggles > label.checked {
   background: #5f5;
 }
 </style>
-<div id=top>
+<div id=toggles>
   <label for=seatAudience><input type=checkbox id=seatAudience> <span>Seat audience</span></label>
+  <label for=muteAudience><input type=checkbox id=muteAudience> <span>Mute audience</span></label>
 </div>
 <canvas id=audienceMap style="border: 1px solid red; width: 300px; height: 300px"></canvas>
 <script>
+"use strict";
 
 const guests = {};
 const placeholderSeats = [];
 let audienceIsSeated = !!sessionStorage.audienceIsSeated;
 let ws;
+let conn;
 
 const connectWs = () => {
   ws = new WebSocket(`${location.protocol == 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
@@ -57,6 +60,14 @@ const connectWs = () => {
             state.position = state.flags.fixedPosition;
           audienceView.setNeedsDisplay();
           seatAudienceIfNeeded();
+        }
+        break;
+      case "knob": {
+          const { name, value } = body;
+          if (name == 'guestsMuted') {
+            muteAudience.checked = body.value;
+            muteAudience.parentNode.classList.toggle('checked', body.value);
+          }
         }
         break;
       case "guestLeaving": {
@@ -82,10 +93,9 @@ connectWs();
 
 const pushFlags = id => {
   const flags = guests[id].flags;
-  ws.send(JSON.stringify({
-    type: 'setGuestFlags',
-    body: { id: +id, flags, }
-  }));
+  conn.send(
+    'setGuestFlags',
+    { id: +id, flags, });
 }
 
 class AudienceView {
@@ -233,5 +243,12 @@ seatAudience.addEventListener('input', e => {
 });
 seatAudienceIfNeeded();
 
+muteAudience.addEventListener('input', e => {
+  e.target.parentNode.classList.toggle('checked', e.target.checked);
+  conn.send('setKnob', {
+    name: 'guestsMuted',
+    value: e.target.checked,
+  });
+});
 
 </script>

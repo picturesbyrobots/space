@@ -55,6 +55,8 @@ class SoundController {
     this.el = soundCueTemplate.content.firstElementChild.cloneNode(true);
     this.playTime = null;
 
+    soundPlaybackState[this.url] = {};
+
     this.startButton = this.el.querySelector('.startButton');
     this.stopButton = this.el.querySelector('.stopButton');
     this.volumeInput = this.el.querySelector('.volume');
@@ -103,7 +105,7 @@ class SoundController {
         volume: this.volume,
       };
     } else {
-      delete soundPlaybackState[this.url];
+      soundPlaybackState[this.url] = {};
     }
     conn.sendSound();
   }
