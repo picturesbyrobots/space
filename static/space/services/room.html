@@ -248,13 +248,13 @@ class Room {
 const room = new Room();
 
 const onVisibilityChange = (e) => {
-  room.setVisible(window.top.document.visibilityState == 'visible');
+  room.setVisible(Service.window.document.visibilityState == 'visible');
 };
 
-window.top.addEventListener('visibilitychange', onVisibilityChange);
+Service.window.addEventListener('visibilitychange', onVisibilityChange);
 
 window.addEventListener('unload', () => {
-  window.top.removeEventListener('visibilitychange', onVisibilityChange);
+  Service.window.removeEventListener('visibilitychange', onVisibilityChange);
   room.disconnectRTC();
 });
 

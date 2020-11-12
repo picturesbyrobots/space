@@ -173,7 +173,7 @@ requestAnimationFrame(function applyAcceleration() {
   requestAnimationFrame(applyAcceleration);
 });
 
-const topDoc = window.top.document;
+const topDoc = Service.window.document;
 topDoc.addEventListener('pointerlockchange', e => {
   if (topDoc.pointerLockElement)
     document.documentElement.classList.add('pointerLocked');

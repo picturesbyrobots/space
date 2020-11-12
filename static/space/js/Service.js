@@ -3,6 +3,11 @@ import Observers from './Observers.js';
 const findIn = window => {
   if (window._serviceManager)
     return window._serviceManager;
+  try {
+    window.parent.document;
+  } catch(e) {
+    return null;
+  }
   if (window.parent != window)
     return findIn(window.parent);
 };
@@ -17,6 +22,7 @@ const serviceManager = findIn(window) || {
       throw new Error('Service.js: setHost should only be called once.');
     this.hostElement = el;
     const hostWindow = el.ownerDocument.defaultView;
+    this.hostWindow = hostWindow;
     hostWindow._serviceManager = this;
   },
   register(name, service) {
@@ -43,6 +49,9 @@ const serviceManager = findIn(window) || {
 };
 
 export default {
+  get window() {
+    return serviceManager.hostWindow;
+  },
   setHost(el) {
     serviceManager.setHost(el);
   },
