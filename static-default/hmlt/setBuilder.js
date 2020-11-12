@@ -160,14 +160,13 @@ const useVideo = (config_uri) => {
             player.userData.alwaysRender = true
             Service.get('hamlet', show => { 
                 show.observe('play_video', msg => {
-                                    console.log(`playing ${msg}`)
+                                    console.log(msg)
+
                                     setVideo(msg)
                                 })
                         })
             hmlt_root.add(player)
         }
-        )
-}
 
     
 export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_config) => {
