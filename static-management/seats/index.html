@@ -158,7 +158,7 @@ class AudienceView {
   }
 }
 
-const positionOfSeatWithFlags = (n, seats, rows, radius, distance, stadium) => {
+const positionOfSeatWithFlags = (n, seats, radius, distance, stadium) => {
   let seat = n;
   let row = 0;
   while (seat > seats + row)
@@ -180,7 +180,7 @@ const positionOfSeatWithFlags = (n, seats, rows, radius, distance, stadium) => {
   ]
 };
 
-const positionOfSeat = n => positionOfSeatWithFlags(n, 10, 10, 100, 5, 3);
+const positionOfSeat = n => positionOfSeatWithFlags(n, 10, 100, 5, 5);
 
 const audienceView = new AudienceView(audienceMap);
 
