@@ -376,7 +376,6 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       videoEl.muted = true;
 
     const posSound = new THREE.PositionalAudio(listener);
-    posSound.panner.panningModel = 'equalpower';
     posSound.setRefDistance(posAudioParams.refDistance);
     posSound.setRolloffFactor(posAudioParams.rolloffFactor);
     posSound.setDistanceModel('exponential');
@@ -569,7 +568,6 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     group.add(light);
       
     const posSound = new THREE.PositionalAudio(listener);
-    posSound.panner.panningModel = 'equalpower';
     posSound.setRefDistance(10);
     posSound.setRolloffFactor(1.5);
     posSound.setDistanceModel('exponential');
