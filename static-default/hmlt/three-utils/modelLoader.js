@@ -74,7 +74,6 @@ export const loadMesh = (model, parameters)  => {
     return Promise.all(promises).then((result) => {
 
         //need to do some geometry things here.
-        console.log(result)
         let gltf = result[0];
         if(Object.keys(gltf).indexOf("scene") !== -1) 
         {
