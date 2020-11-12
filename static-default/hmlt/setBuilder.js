@@ -35,7 +35,7 @@ const createActors = (object, actors) => {
                             crop = actor_data.crop
 
                         }else {
-                            actor_data= {cropLeft : 0.0, cropRight : 1.0}
+                            crop = {cropLeft : 0.0, cropRight : 1.0}
                         }
 
                         let [actor, setStream, getStream] = createActor(object, {  name : actor_data.name, 
