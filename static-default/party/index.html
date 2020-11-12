@@ -326,6 +326,8 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     refDistance: 0,
     rolloffFactor: 0,
   };
+  let audienceGain = listener.context.createGain();
+  audienceGain.connect(listener.gain);
 
   const getOrCreateGuest = (id, remoteGuest) => {
     let guest = guests[id];
@@ -380,6 +382,8 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     posSound.setDistanceModel('exponential');
     posSound.setDirectionalCone(120, 230, 0.8);
     posSound.rotation.y = Math.PI;
+    posSound.gain.disconnect();
+    posSound.gain.connect(audienceGain);
     videoPanel.add(posSound);
 
 
@@ -660,6 +664,9 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       for (const k in guests)
         guests[k].posSound.setRolloffFactor(rolloffFactor * 10);
     }, 1);
+    knobs.observe('guestsMuted', v => {
+      audienceGain.gain.setTargetAtTime(v ? 0 : 1, THREE.AudioContext.getContext().currentTime, 0.5);
+    }, false);
   });
 
   resize();
