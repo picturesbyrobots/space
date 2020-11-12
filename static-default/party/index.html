@@ -33,7 +33,7 @@ const createSoundPlayer = (ac, destination) => {
   const update = state => {
     for (const k in playingSounds) {
       const sound = playingSounds[k];
-      if (k in state) {
+      if (state.k && state.k.playTime) {
         if (state[k].volume != sound.gain.gain.value)
           sound.gain.gain.setTargetAtTime(state[k].volume, ac.currentTime, 0.1);
         if (state[k].playTime == sound.playTime)
@@ -46,6 +46,9 @@ const createSoundPlayer = (ac, destination) => {
     }
     for (const k in state) {
       if (playingSounds[k]) {
+      } else if (!('playTime' in state[k])) {
+        // Preload!
+        getSound(k);
       } else {
         const sound = playingSounds[k] = {
           playTime: state[k].playTime,
