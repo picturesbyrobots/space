@@ -1,4 +1,5 @@
 {
+  "chat": false,
   "zeroTime": 1593206857158,
   "rtcConfiguration": {
     "iceServers": [
