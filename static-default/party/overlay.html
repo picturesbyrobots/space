@@ -17,7 +17,7 @@ body {
   color: red;
 }
 
-#topright {
+#actorPanel {
   position: absolute;
   top: 0;
   right: 25vh;
@@ -25,7 +25,7 @@ body {
   align-items: flex-start;
 }
 
-#topright > button {
+#actorPanel > button {
   margin: 0.75em 0.5em;
 }
 
@@ -121,11 +121,15 @@ body:not(.chatEnabled) #chatForm {
   display: none;
 }
 
+body:not(.crew) #actorPanel {
+  display: none;
+}
+
 </style>
 
 <div id=videoMutedEl style="display: none">Camera off</div>
 <div id=audioMutedEl style="display: none">Microphone off</div>
-<div id=topright>
+<div id=actorPanel>
 <button id=startActing>Start acting…</button>
 <button id=stopActing style="display: none">Stop acting</button>
 </div>
@@ -300,5 +304,8 @@ Service.get('userMedia', userMedia => {
     });
   });
 })();
+
+if (!(Service.window.qs && Service.window.qs.tkt))
+  document.body.classList.add('crew');
 
 </script>
