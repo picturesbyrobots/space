@@ -16,6 +16,9 @@ class HamletService {
         case 'play_video' :
           this.observers.fire('play_video', message.data);
           break;
+        case 'roll_credits' : 
+          this.observers.fire('roll_credits', message.data);
+          break
           
         default :
           break;
