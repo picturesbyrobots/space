@@ -30,8 +30,8 @@ const hqs = location.hash
 
 const createSoundPlayer = (ac, destination) => {
   // iOS is currently crashing the tab when loading audio buffers. Quick fix.
-  if (!isIOS)
-    getSound(k);
+  if (isIOS)
+    return;
 
   const soundPromises = {};
   const playingSounds = {};
