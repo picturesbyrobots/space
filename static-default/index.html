@@ -51,6 +51,13 @@ body > iframe {
 <div id=needGesture style="display: none">Click/touch anywhere.</div>
 <script type=module>
 
+const qs = window.qs = location.search
+  .substr(1)
+  .split('&')
+  .filter(v => v)
+  .map(c => c.split('=').map(decodeURIComponent))
+  .reduce((params, [k, v]) => (params[k] = v, params), {});
+
 import Service from '/space/js/Service.js';
 
 Service.setHost(serviceFrames);
