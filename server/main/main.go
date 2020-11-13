@@ -338,6 +338,7 @@ func main() {
 		fileServer := http.FileServer(http.Dir(*staticDir))
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "must-revalidate")
+			w.Header().Set("Vary", "*")
 			fileServer.ServeHTTP(w, r)
 		})
 	} else {
