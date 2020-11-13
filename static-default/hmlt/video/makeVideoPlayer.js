@@ -146,7 +146,7 @@ export const makeVideoPlayer = (config, gestureWrangler, parameters) => {
     }
     
       const resizeScreen = (videoEl) => {
-        screen.geometry = new THREE.PlaneBufferGeometry(60, 40 / (videoEl.videoWidth / videoEl.videoHeight));
+        screen.geometry = new THREE.PlaneBufferGeometry(40, 40 / (videoEl.videoWidth / videoEl.videoHeight));
 
       }
 
