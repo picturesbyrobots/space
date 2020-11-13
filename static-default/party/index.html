@@ -621,13 +621,25 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
   projector.group.position.x = -180;
   projector.group.rotation.y = Math.PI / 2;
 
+  const isEffectivelyVisible = obj => {
+    if (!obj)
+      return true;
+    if (!obj.visible)
+      return false;
+    return isEffectivelyVisible(obj.parent);
+  };
+
   const draw = ({ now, look, position }) => {
+    let onStage = false;
     if (ownActorName) {
       const obj = scene.getObjectByName(ownActorName);
       if (obj) {
 
         let {width} = obj.geometry.parameters
         obj.add(camera);
+
+        if (isEffectivelyVisible(obj))
+          onStage = true;
 
         camera.position.set(0, 9, -1.25 * width);
         camera.rotation.set(-Math.PI/11, Math.PI, 0);
@@ -642,6 +654,13 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       camera.updateProjectionMatrix();
     }
 
+    if (onStage) {
+      if (!sessionStorage.onStage)
+          sessionStorage.onStage = true;
+    } else {
+      if (sessionStorage.onStage)
+        delete sessionStorage.onStage;
+    }
 
 
     hmlt_animate()

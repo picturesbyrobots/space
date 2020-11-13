@@ -1,5 +1,30 @@
 <!DOCTYPE html>
 <link rel=stylesheet href=/style.css>
+<style>
+
+#cueActor {
+  position: fixed;
+  padding: 1em 0.5em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.8);
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+#cueActorPlaceholder {
+  height: 4em;
+}
+
+#cueActor button {
+  margin: 0 0.25em;
+  font: inherit;
+  font-size: 1.5em;
+}
+
+</style>
+<div id=cueActor><button data-cue="">(clear)</button><button data-cue="standby">Standby</button><button data-cue="go">GO!</button></div>
+<div id=cueActorPlaceholder></div>
 <ul id="sceneCues"></ul>
 <template id=sceneTemplate>
   <li>
@@ -104,5 +129,28 @@ let config = 'hmltConfig.js'
         })
 let credit_controller = new CreditController()
 sceneCues.appendChild(credit_controller.el)
+
+const actorCues = {
+  standby: {
+    message: 'STAND BY',
+    bg: 'rgba(100, 100, 100, 0.5)',
+    hold: 10000,
+  },
+  go: {
+    message: 'GO!',
+    bg: 'rgba(0, 127, 0, 0.5)',
+    hold: 1000,
+  },
+}
+
+for (const button of document.querySelectorAll('button[data-cue]')) {
+  const cue = actorCues[button.dataset.cue];
+  button.addEventListener('click', e => {
+    conn && conn.send('broadcast', {
+        type: 'hmlt_cue',
+        body: cue,
+      });
+  });
+}
 
 </script>

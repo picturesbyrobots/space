@@ -125,6 +125,28 @@ body:not(.crew) #actorPanel {
   display: none;
 }
 
+#cueCard {
+  background: rgba(255, 0, 0, 0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  color: white;
+  align-items: center;
+  justify-content: center;
+  font-size: 10em;
+  transition: opacity 1s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#cueCard.visible {
+  transition: none;
+  opacity: 1;
+}
+
 </style>
 
 <div id=videoMutedEl style="display: none">Camera off</div>
@@ -138,6 +160,7 @@ body:not(.crew) #actorPanel {
   <form id=chatForm><input name=message autocomplete=off></form>
   <div id=touchmove style="display: none">Drag here to move.<br>Drag anywhere else to look around.</div>
 </div>
+<div id=cueCard>GO!</div>
 <script type=module>
 
 // Hack for casting from iOS, which keeps losing camera when changing constraints.
@@ -308,4 +331,25 @@ Service.get('userMedia', userMedia => {
 if (!(Service.window.qs && Service.window.qs.tkt))
   document.body.classList.add('crew');
 
+let hideTimeout;
+Service.get('ws', ws => {
+  ws.observe('hmlt_cue', cue => {
+    if (!cue) {
+      cueCard.classList.remove('visible');
+      return;
+    }
+    if (!sessionStorage.onStage)
+      return;
+    const { message, bg, hold } = cue;
+    cueCard.textContent = message || '';
+    cueCard.style.backgroundColor = bg || '';
+    cueCard.classList.add('visible');
+    if (hideTimeout)
+      clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      hideTimeout = null;
+      cueCard.classList.remove('visible');
+    }, hold || 500);
+  });
+});
 </script>
