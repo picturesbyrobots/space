@@ -16,6 +16,8 @@ import RTCPeer from '/space/js/RTCPeer.js'
 import {initBuilder, useActors, useActiveScene, useAnimation } from '/hmlt/setBuilder.js'
 import RTCLoopback from '/space/js/RTCLoopback.js'
 
+const isIOS = !!navigator.platform.match(/iPhone|iPod|iPad/);
+
 Service.get('docent', docent => {});
 
 const hqs = location.hash
@@ -27,6 +29,10 @@ const hqs = location.hash
 
 
 const createSoundPlayer = (ac, destination) => {
+  // iOS is currently crashing the tab when loading audio buffers. Quick fix.
+  if (!isIOS)
+    getSound(k);
+
   const soundPromises = {};
   const playingSounds = {};
 

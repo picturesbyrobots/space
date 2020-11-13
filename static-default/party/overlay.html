@@ -136,6 +136,9 @@ body:not(.chatEnabled) #chatForm {
 </div>
 <script type=module>
 
+// Hack for casting from iOS, which keeps losing camera when changing constraints.
+const isIOS = !!navigator.platform.match(/iPhone|iPod|iPad/);
+
 import Service from '/space/js/Service.js'
 import PlayerControls from '/space/js/PlayerControls.js'
 
@@ -225,7 +228,7 @@ Service.get('userMedia', userMedia => {
       room && room.ac.resume();
 
     await userMedia.applyConstraints({
-      video: acting ? {
+      video: (acting && !isIOS) ? {
         width: 1280,
         height: 720,
         aspectRatio: 1920/1080,
