@@ -164,7 +164,14 @@ const useVideo = (config_uri) => {
 
                                     setVideo(msg)
                                 })
+                show.observe('stop_video', msg => {
+                                    console.log("stopping")
+                                    player.getObjectByName("screen")
+                                        .material.visible = false;
+
+                                })
                         })
+
             hmlt_root.add(player)
         }
 

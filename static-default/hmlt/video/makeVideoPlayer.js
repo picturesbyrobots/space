@@ -176,6 +176,7 @@ export const makeVideoPlayer = (config, gestureWrangler, parameters) => {
     // put it all together
     const group = new THREE.Group();
     group.add(screen);
+    screen.name = "screen"
     group.name = "videoPlayer"
     
     const player_pos = new THREE.Vector3(0.0, 0.0, 0.0)
