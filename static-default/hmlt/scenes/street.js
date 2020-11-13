@@ -7,7 +7,7 @@ let rainCount
 let street_uniforms
 const particles = 50000;
 const radius = 200;
-let gravity = .04;
+let gravity = .005;
 
 let particleSystem, uniforms, geometry;
 let particles_created = false
