@@ -72,6 +72,24 @@ class SceneController{
   }
 }
 
+class CreditController {
+
+  constructor() {
+
+    this.el = sceneTemplate.content.firstElementChild.cloneNode(true);
+
+    this.sceneButton = this.el.querySelector('.sceneButton');
+    this.el.querySelector('.title').textContent = 'Roll Credits';
+
+    this.sceneButton.addEventListener('mousedown', e => {
+
+      conn && conn.send('broadcast', {type: 'hmlt_chat', body:{cmd : 'roll_credits', data : {speed: .1}}})
+      // this.setNeedsDisplay();
+    });
+
+  }
+}
+
 let config = 'hmltConfig.js'
  fetch(`https://hamlet-gl-assets.s3.amazonaws.com/config/${config}`)
         .then(
@@ -84,5 +102,7 @@ let config = 'hmltConfig.js'
 
 
         })
+let credit_controller = new CreditController()
+sceneCues.appendChild(credit_controller.el)
 
 </script>
