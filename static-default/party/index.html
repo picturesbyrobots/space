@@ -443,7 +443,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
         }
         if (audioTrack) {
           try {
-            if (sessionStorage.noPositionalSound) {
+            if (sessionStorage.noPositionalSound || isIOS) {
             } else if (!posSound) {
               posSound = new THREE.PositionalAudio(listener);
               posSound.setRefDistance(posAudioParams.refDistance);
@@ -452,8 +452,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
               posSound.setDirectionalCone(120, 230, 0.8);
               posSound.rotation.y = Math.PI;
               posSound.gain.disconnect();
-              if (!isIOS)
-                posSound.gain.connect(audienceGain);
+              posSound.gain.connect(audienceGain);
               videoPanel.add(posSound);
             }
             if (posSound)
