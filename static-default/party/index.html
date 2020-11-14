@@ -696,7 +696,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
         }, 5000);
       } else {
         setTimeout(() => {
-          audienceGain.connect();
+          audienceGain.connect(listener.gain);
         }, 5000);
       }
     }, false);

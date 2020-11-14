@@ -210,6 +210,7 @@ export var initBuilder = (scene,config_uri, k_camera, renderer, gw,al,party_conf
                         actors.map
                         (actor=> {
                             actor.userData.unmuteSound()
+                            console.log('unmute');
                         })
                     }
                     child.visible = true
