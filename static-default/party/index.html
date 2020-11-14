@@ -873,6 +873,7 @@ const start = () => {
           um.debugRestart();
         }, false);
         knobs.observe('perf.requiredVideoMute', on => {
+          document.getElementById('glPlayerView').style.display = on ? 'none' : '';
           um.setRequiredVideoMute(on);
         }, false);
         knobs.observe('perf.requiredAudioMute', on => {
