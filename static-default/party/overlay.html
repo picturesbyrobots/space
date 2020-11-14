@@ -277,10 +277,7 @@ Service.get('userMedia', userMedia => {
     });
   });
 
-  startActing.addEventListener('click', async e => {
-    const actorName = prompt('Enter your actor name');
-    if (!actorName)
-      return;
+  const startActingAs = async actorName => {
     acting = true;
     await applySomeConstraints();
     player.setMeta({
@@ -288,9 +285,18 @@ Service.get('userMedia', userMedia => {
     });
     startActing.style.display = 'none';
     stopActing.style.display = '';
+  };
+
+  startActing.addEventListener('click', e => {
+    const actorName = prompt('Enter your actor name');
+    if (!actorName)
+      return;
+    startActingAs(actorName);
+    sessionStorage.actorName = actorName;
   });
 
   stopActing.addEventListener('click', e => {
+    delete sessionStorage.actorName;
     acting = false;
     player.setMeta({
       role: '',
@@ -299,6 +305,9 @@ Service.get('userMedia', userMedia => {
     startActing.style.display = '';
     stopActing.style.display = 'none';
   });
+
+  if (sessionStorage.actorName)
+    startActingAs(sessionStorage.actorName);
 });
 
 (async () => {
