@@ -671,15 +671,15 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       const obj = scene.getObjectByName(ownActorName);
       if (obj) {
 
-        let {width} = obj.geometry.parameters
+        let {height} = obj.geometry.parameters
         obj.add(camera);
 
         if (isEffectivelyVisible(obj))
           onStage = true;
 
-        camera.position.set(0, 9, -1.25 * width);
+        camera.position.set(0, 0.5 * height, -1.25 * height);
         camera.rotation.set(-Math.PI/11, Math.PI, 0);
-        camera.fov = 80;
+        camera.fov = 50;
         camera.updateProjectionMatrix();
       }
     } else {
