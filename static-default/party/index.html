@@ -412,8 +412,16 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       head.add(videoPanel);
     });
     videoEl.addEventListener('paused', () => {
-      head.remove(videoPanel);
+      // head.remove(videoPanel);
     });
+
+    const onVideoMute = e => {
+      head.remove(videoPanel);
+    };
+
+    const onVideoUnmute = e => {
+      head.add(videoPanel);
+    };
 
     let videoTrack, audioTrack;
 
@@ -478,7 +486,19 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
       set videoTrack(newVideoTrack) {
         if (newVideoTrack == videoTrack)
           return;
+        if (videoTrack) {
+          videoTrack.removeEventListener('mute', onVideoMute);
+          videoTrack.removeEventListener('unmute', onVideoUnmute);
+        }
         videoTrack = newVideoTrack;
+        if (videoTrack) {
+          videoTrack.addEventListener('mute', onVideoMute);
+          videoTrack.addEventListener('unmute', onVideoUnmute);
+        }
+        if (videoTrack && !videoTrack.muted)
+          onVideoUnmute();
+        else
+          onVideoMute();
         updateTracks();
       },
       get audioTrack() { return audioTrack; },
