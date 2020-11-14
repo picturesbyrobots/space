@@ -416,7 +416,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     let videoTrack, audioTrack;
 
     const updateTracks = () => {
-        const tracks = [audioTrack].filter(t => t); // Hot fix.
+        const tracks = [videoTrack, audioTrack].filter(t => t);
         const stream = tracks.length ? (videoEl.srcObject || new MediaStream(tracks)) : null;
         if (videoEl.srcObject != stream)
           videoEl.srcObject = stream;
