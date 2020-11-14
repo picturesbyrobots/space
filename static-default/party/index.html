@@ -333,6 +333,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     rolloffFactor: 0,
   };
   let audienceGain = listener.context.createGain();
+  let audienceMuted = false;
   audienceGain.connect(listener.gain);
 
   const getOrCreateGuest = (id, remoteGuest) => {
@@ -381,17 +382,7 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     if (!sessionStorage.noPositionalSound)
       videoEl.muted = true;
 
-    const posSound = new THREE.PositionalAudio(listener);
-    posSound.setRefDistance(posAudioParams.refDistance);
-    posSound.setRolloffFactor(posAudioParams.rolloffFactor);
-    posSound.setDistanceModel('exponential');
-    posSound.setDirectionalCone(120, 230, 0.8);
-    posSound.rotation.y = Math.PI;
-    posSound.gain.disconnect();
-    if (!isIOS)
-      posSound.gain.connect(audienceGain);
-    videoPanel.add(posSound);
-
+    let posSound;
 
     const videoTexture = new THREE.VideoTexture(videoEl);
     videoTexture.minFilter = THREE.LinearFilter;
@@ -434,16 +425,31 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
         }
         if (audioTrack) {
           try {
-            if (!sessionStorage.noPositionalSound)
+            if (sessionStorage.noPositionalSound) {
+            } else if (!posSound) {
+              posSound = new THREE.PositionalAudio(listener);
+              posSound.setRefDistance(posAudioParams.refDistance);
+              posSound.setRolloffFactor(posAudioParams.rolloffFactor);
+              posSound.setDistanceModel('exponential');
+              posSound.setDirectionalCone(120, 230, 0.8);
+              posSound.rotation.y = Math.PI;
+              posSound.gain.disconnect();
+              if (!isIOS)
+                posSound.gain.connect(audienceGain);
+              videoPanel.add(posSound);
+            }
+            if (posSound)
               posSound.setMediaStreamSource(stream);
           } catch (e) {
             console.log(e);
             videoEl.muted = false;
           }
-        } else if (posSound.source) {
+        } else if (posSound) {
           try {
+            posSound.getOutput().disconnect();
             posSound.disconnect();
           } catch(e){}
+          posSound = null
         }
     };
 
@@ -475,6 +481,10 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
 
     ret.videoTrack = remoteGuest.videoTrack;
     ret.audioTrack = remoteGuest.audioTrack;
+
+    ret.backupVideoTrack = ret.videoTrack;
+    ret.backupAudioTrack = ret.audioTrack;
+
     updateTracks();
 
     if (joinSound) {
@@ -537,6 +547,10 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     if (!guest) {
       return;
     }
+
+    guest.backupVideoTrack = videoTrack;
+    guest.backupAudioTrack = audioTrack;
+
     guest.videoTrack = videoTrack;
     guest.audioTrack = audioTrack;
   };
@@ -681,23 +695,33 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     knobs.observe('posAudio.refDistance', refDistance => {
       posAudioParams.refDistance = refDistance;
       for (const k in guests)
-        guests[k].posSound.setRefDistance(refDistance * 50);
+        guests[k].posSound && guests[k].posSound.setRefDistance(refDistance * 50);
     }, 1);
     knobs.observe('posAudio.rolloffFactor', rolloffFactor => {
       posAudioParams.rolloffFactor = rolloffFactor;
       for (const k in guests)
-        guests[k].posSound.setRolloffFactor(rolloffFactor * 10);
+        guests[k].posSound && guests[k].posSound.setRolloffFactor(rolloffFactor * 10);
     }, 1);
     knobs.observe('guestsMuted', v => {
+      audienceMuted = v;
       audienceGain.gain.setTargetAtTime(v ? 0 : 1, THREE.AudioContext.getContext().currentTime, 0.5);
-      if (v) {
+      if (audienceMuted && (Service.window.qs && Service.window.qs.tkt)) {
+        if (userMedia && !userMedia.audioMuted) {
+          userMedia.toggleAudioMuted();
+        }
+        if (userMedia && !userMedia.videoMuted) {
+          userMedia.toggleVideoMuted();
+        }
         setTimeout(() => {
-          audienceGain.disconnect();
+          for (const k in guests) {
+            guests[k].audioTrack = audienceMuted ? null : guests[k].backupAudioTrack;
+          }
         }, 5000);
       } else {
-        setTimeout(() => {
-          audienceGain.connect(listener.gain);
-        }, 5000);
+        for (const k in guests) {
+          console.log(guests[k].backupAudioTrack);
+          guests[k].audioTrack = guests[k].backupAudioTrack;
+        }
       }
     }, false);
   });
@@ -811,6 +835,8 @@ let motion = 0;
 let joinSound;
 let partSound;
 
+  let userMedia;
+
 const start = () => {
   Service.get('knobs', knobs => {
     knobs.observe('world.musicReactivity', v => {
@@ -825,7 +851,6 @@ const start = () => {
     gestureWrangler = gw;
   });
 
-  let userMedia;
   Service.get('userMedia', um => {
     userMedia = um;
     userMedia.start();
