@@ -388,7 +388,8 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     posSound.setDirectionalCone(120, 230, 0.8);
     posSound.rotation.y = Math.PI;
     posSound.gain.disconnect();
-    posSound.gain.connect(audienceGain);
+    if (!isIOS)
+      posSound.gain.connect(audienceGain);
     videoPanel.add(posSound);
 
 
@@ -689,6 +690,15 @@ const buildGlRoom = (canvas, playerCanvas, config) => {
     }, 1);
     knobs.observe('guestsMuted', v => {
       audienceGain.gain.setTargetAtTime(v ? 0 : 1, THREE.AudioContext.getContext().currentTime, 0.5);
+      if (v) {
+        setTimeout(() => {
+          audienceGain.disconnect();
+        }, 5000);
+      } else {
+        setTimeout(() => {
+          audienceGain.connect();
+        }, 5000);
+      }
     }, false);
   });
 
