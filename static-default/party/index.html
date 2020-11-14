@@ -847,8 +847,6 @@ let motion = 0;
 let joinSound;
 let partSound;
 
-  let userMedia;
-
 const start = () => {
   Service.get('knobs', knobs => {
     knobs.observe('world.musicReactivity', v => {
@@ -863,9 +861,25 @@ const start = () => {
     gestureWrangler = gw;
   });
 
+  let userMedia;
   Service.get('userMedia', um => {
     userMedia = um;
     userMedia.start();
+
+    // services are so bad right now please restore my sanity
+    if (Service.window.qs && Service.window.qs.tkt) {
+      Service.get('knobs', knobs => {
+        knobs.observe('perf.tickleUserMedia', on => {
+          um.debugRestart();
+        }, false);
+        knobs.observe('perf.requiredVideoMute', on => {
+          um.setRequiredVideoMute(on);
+        }, false);
+        knobs.observe('perf.requiredAudioMute', on => {
+          um.setRequiredAudioMute(on);
+        }, false);
+      });
+    }
   });
 
   Service.window.addEventListener('keydown', e => {
